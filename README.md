@@ -2,7 +2,7 @@
 
 I am working on a bird-eats-bird game to acclimate myself to the phaser ecosystem.
 
-[Click Here to play](http://jtronlabs.github.io/Fishu/dist/index.html)
+[Click Here to play](http://jtronlabs.github.io/Birdu/dist/index.html)
 
 Basic instructions on what I've done as are follows:
 
