@@ -1,6 +1,10 @@
 #birdu
 
-I am working on a fish-eats-fish game to acclimate myself to the phaser ecosystem. Basic instructions on what I've done as are follows:
+I am working on a fish-eats-fish game to acclimate myself to the phaser ecosystem. 
+
+[Click Here to play](http://jtronlabs.github.io/Fishu/dist/index.html)
+
+Basic instructions on what I've done as are follows:
 
 
 ```
