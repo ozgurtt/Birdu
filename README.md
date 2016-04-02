@@ -1,4 +1,4 @@
-#Fishu
+#birdu
 
 I am working on a fish-eats-fish game to acclimate myself to the phaser ecosystem. Basic instructions on what I've done as are follows:
 
@@ -17,4 +17,8 @@ sudo npm install -g yo generator-phaser-official #YeoMan tool to auto-gen phaser
 
 yo phaser-official #Generate a project in current directory (phaser is v2.4.6 at time of writing)
 grunt #will auto-compile JS file as you modify code, and will save production output to /dist directory
+
+
+#later you can generate prefabs with
+yo phaser-official:prefab "prefab_name"
 ```
