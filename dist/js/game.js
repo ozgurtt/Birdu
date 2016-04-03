@@ -48,18 +48,20 @@ var Protagonist = function(game, x, y, frame) {
   this.anchor.setTo(0.5, 0.5);
 
   // add and play animations
-  this.animations.add('my-flap', [0,1,2,3], 12, true);
-  this.animations.play('my-flap');
+  this.animations.add('idling', [0,1,2,3], 12, true);
+  this.animations.play('idling');
 
-  // enable physics on the bird
-  // and disable gravity on the bird
-  // until the game is started
+  // Bird PHYSICS
   this.game.physics.arcade.enableBody(this);
   this.body.allowGravity = false;
-  this.alive = false;
+  this.body.collideWorldBounds = true;
+  this.body.bounce.set(0.4);
+
   this.body.drag.x = drag;
   this.body.drag.y = drag;
 
+  //custom properties
+  this.alive = false;
 };
 
 Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
