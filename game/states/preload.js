@@ -7,12 +7,14 @@ function Preload() {
 
 Preload.prototype = {
   preload: function() {
-    this.asset = this.add.sprite(this.width/2,this.height/2, 'preloader');
-    this.asset.anchor.setTo(0.5, 0.5);
-
+    //loading image while loading other assets
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
+    this.asset = this.add.sprite(this.width/2, this.height/2, 'preloader');
+    this.asset.anchor.setTo(0.5, 0.5);
     this.load.setPreloadSprite(this.asset);
-    this.load.image('yeoman', 'assets/yeoman-logo.png');
+
+    //individual images
+    this.load.image('birds', 'assets/birds/birds.png');
 
   },
   create: function() {
