@@ -2,6 +2,7 @@
 
 var movement_speed = 90;
 var drag = 75;
+var flap_delay = 60;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
@@ -9,7 +10,7 @@ var Protagonist = function(game, x, y, frame) {
   this.anchor.setTo(0.5, 0.5);
 
   // add and play animations
-  this.animations.add('idling', [0,1,2,3], 12, true);
+  this.animations.add('idling', [0,1,2,3], flap_delay, true);
   this.animations.play('idling');
 
   // Bird PHYSICS
@@ -30,6 +31,20 @@ Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
   //HORIZONTAL MOVEMENT
+  var moving_horizontally = true;
+  this.animations.getAnimation('idling').delay = flap_delay / 2;
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
+  {
+      this.body.velocity.y = -movement_speed;
+      this.angle = -15;
+  }
+  else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
+  {
+      this.body.velocity.y = movement_speed;
+      this.angle = 15;
+  }else{
+    moving_horizontally = false
+  }
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
   {
       this.body.velocity.x = movement_speed;
@@ -40,22 +55,12 @@ Protagonist.prototype.update = function() {
       this.body.velocity.x = -movement_speed;
       this.angle = -15;
   }
-  else
+  else if(!moving_horizontally)
   {
+    this.animations.getAnimation('idling').delay = flap_delay;
     this.angle = 0;
   }
 
-  //VERTICAL MOVEMENT
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
-  {
-      this.body.velocity.y = -movement_speed;
-      this.angle = -15;
-  }
-  else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
-  {
-      this.body.velocity.y = movement_speed;
-      this.angle = 15;
-  }
 
 };
 
