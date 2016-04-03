@@ -15,7 +15,8 @@ var Protagonist = function(game, x, y, frame) {
 
   // Bird PHYSICS
   this.game.physics.arcade.enableBody(this);
-  this.body.allowGravity = false;
+  this.body.allowGravity = true;
+  this.game.physics.arcade.gravity.y = 0;
   this.body.collideWorldBounds = true;
   this.body.bounce.set(0.4);
 
@@ -30,9 +31,11 @@ Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
 Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
-  //HORIZONTAL MOVEMENT
   var moving_horizontally = true;
   this.animations.getAnimation('idling').delay = flap_delay / 2;
+  this.game.physics.arcade.gravity.y = 0;
+
+  //HORIZONTAL MOVEMENT
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
   {
       this.body.velocity.y = -movement_speed;
@@ -45,6 +48,7 @@ Protagonist.prototype.update = function() {
   }else{
     moving_horizontally = false
   }
+  //VERTICAL MOVEMENT
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
   {
       this.body.velocity.x = movement_speed;
@@ -55,8 +59,10 @@ Protagonist.prototype.update = function() {
       this.body.velocity.x = -movement_speed;
       this.angle = -15;
   }
+  //NO MOVEMENT
   else if(!moving_horizontally)
   {
+    this.game.physics.arcade.gravity.y = 90;
     this.animations.getAnimation('idling').delay = flap_delay;
     this.angle = 0;
   }
