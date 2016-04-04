@@ -18,30 +18,9 @@ window.onload = function () {
 },{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
 'use strict';
 
-var Bird_enemy = function(game, parent) {
-  Phaser.Group.call(this, game, parent);
-
-  // initialize your prefab here
-
-};
-
-Bird_enemy.prototype = Object.create(Phaser.Group.prototype);
-Bird_enemy.prototype.constructor = Bird_enemy;
-
-Bird_enemy.prototype.update = function() {
-
-  // write your prefab's specific update code here
-
-};
-
-module.exports = Bird_enemy;
-
-},{}],3:[function(require,module,exports){
-'use strict';
-
 var movement_speed = 90;
-var drag = 75;
-var flap_delay = 60;
+var drag_value = 75;
+var animation_flap_delay_for_8_img_sprite = 60;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
@@ -49,19 +28,17 @@ var Protagonist = function(game, x, y, frame) {
   this.anchor.setTo(0.5, 0.5);
   this.scale.setTo(.5,.5);
 
-  // add and play animations
-  this.animations.add('idling', [0,1,2,3], flap_delay, true);
+  // add animations specific for this sprite, and and play them
+  this.animations.add('idling', [0,1,2,3], animation_flap_delay_for_8_img_sprite, true);
   this.animations.play('idling');
 
-  // Bird PHYSICS
+  // Bird PHYSICS. We want him to emulate the sky. So he will have to glide a bit before stopping, and will have gravity (check player movement method)
   this.game.physics.arcade.enableBody(this);
   this.body.allowGravity = true;
   this.game.physics.arcade.gravity.y = 0;
   this.body.collideWorldBounds = true;
   this.body.bounce.set(0.4);
-
-  this.body.drag.x = drag;
-  this.body.drag.y = drag;
+  this.body.drag.setTo(drag_value,drag_value) ;
 
   //custom properties
   this.alive = false;
@@ -71,15 +48,33 @@ Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
 Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
-  handleMovement(this);
+  handlePlayerMovement(this);
 
 };
 
-function handleMovement(player){
-  var moving_vertically = true;
-  player.animations.getAnimation('idling').delay = flap_delay / 2;
+function handlePlayerMovement(player){
+  var moving_horizontally = true;
+  player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite / 2;
 
-  //VERTICAL MOVEMENT
+  //HORIZONTAL MOVEMENT
+  if (player.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
+  {
+    player.game.physics.arcade.gravity.y = 0;
+    player.scale.x = Math.abs(player.scale.x); //face sprite right
+    player.body.velocity.x = movement_speed;
+    player.angle = 15;
+  }
+  else if (player.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
+  {
+    player.game.physics.arcade.gravity.y = 0;
+    player.scale.x = -1 * Math.abs(player.scale.x);//face sprite left
+    player.body.velocity.x = -movement_speed;
+    player.angle = -15;
+  }else{
+    moving_horizontally = false
+  }
+
+  //VERTICAL MOVEMENT (put it after horizontal check, so that the direction the bird is looking will consider vertical movement more important than horizontal)
   if (player.game.input.keyboard.isDown(Phaser.Keyboard.UP))
   {
     player.game.physics.arcade.gravity.y = 0;
@@ -98,29 +93,12 @@ function handleMovement(player){
     }else{//sprite is facing left
       player.angle = -15;
     }
-  }else{
-    moving_vertically = false
-  }
-  //HORIZONTAL MOVEMENT
-  if (player.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
-  {
-    player.game.physics.arcade.gravity.y = 0;
-    player.scale.x = Math.abs(player.scale.x); //face sprite right
-    player.body.velocity.x = movement_speed;
-    player.angle = 15;
-  }
-  else if (player.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
-  {
-    player.game.physics.arcade.gravity.y = 0;
-    player.scale.x = -1 * Math.abs(player.scale.x);//face sprite left
-    player.body.velocity.x = -movement_speed;
-    player.angle = -15;
   }
   //NO MOVEMENT
-  else if(!moving_vertically)
+  else if(!moving_horizontally)
   {
     player.game.physics.arcade.gravity.y = 90;
-    player.animations.getAnimation('idling').delay = flap_delay;
+    player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite;
     player.angle = 0;
   }
 
@@ -131,6 +109,102 @@ function getProtagonistArea(){
 }
 
 module.exports = Protagonist;
+
+},{}],3:[function(require,module,exports){
+'use strict';
+
+var num_enemy_spritesheets = 25;
+var animation_flap_delay_for_8_img_sprite = 10;
+
+var Sideways_enemy = function(game, parent) {
+  Phaser.Sprite.call(this, game);
+  parent.add(this);
+
+  this.game.physics.arcade.enableBody(this);
+  this.body.allowGravity = false;
+
+  chooseRandomSpriteSheet(this);
+  setSpriteSize(this);
+  startMovement(this);
+};
+
+Sideways_enemy.prototype = Object.create(Phaser.Sprite.prototype);
+Sideways_enemy.prototype.constructor = Sideways_enemy;
+
+Sideways_enemy.prototype.update = function() {
+
+  // write your prefab's specific update code here
+
+};
+
+function setSpriteSize(sprite){
+
+}
+
+function startMovement(sprite){
+  //randomly place sprite's y position such that it will be 100% on screen
+  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random();
+
+  if(Math.random() < 0.5){ //moves from left to right
+    //start sprite outside the game on the left side
+    sprite.position.x  = - sprite.width;
+
+    sprite.body.velocity.x = 100;
+    sprite.scale.x = Math.abs(sprite.scale.x); //face sprite right
+
+  }
+  else{ //moves from right to left
+    //start sprite outside the game on the right side
+    sprite.position.x  = sprite.game.world.width + sprite.width;
+
+    sprite.body.velocity.x = -100;
+    sprite.scale.x = -1 * Math.abs(sprite.scale.x); //face sprite left
+  }
+}
+
+function chooseRandomSpriteSheet(sprite){
+  //bird spritesheets are numbered 0-25, choose one at random
+  var randImgId = getRandomInt(0, 26);
+
+  //load sprite picture by concatenating the prefix 'b-' with the random sprite number.
+  sprite.loadTexture('b-'+randImgId,0,true);
+
+  //play an idling/flapping animation
+  var idlingAnimArray = getIdlingAnimationArray(randImgId);
+  var animDelay = animation_flap_delay_for_8_img_sprite * (idlingAnimArray.length / 8.0);   //depending on how many images are in the idling animation, adjust the delay such that everyone flaps at the same speed
+  sprite.animations.add('idling', idlingAnimArray, animDelay, true);
+  sprite.animations.play('idling');
+}
+
+//spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
+function getIdlingAnimationArray(spritesheet_index){
+  switch(spritesheet_index){
+    case 1:
+    case 5:
+    case 7:
+    case 8:
+    case 9:
+    case 14:
+    case 17:
+    case 20:
+    case 22:
+      return [0,1,2,3,4,5,6,7];
+    case 12:
+    case 15:
+    case 16:
+      return [0,1];
+    default:
+      return [0,1,2,3];
+  }
+}
+
+// Returns a random integer between min (included) and max (excluded)
+// Using Math.round() will give you a non-uniform distribution!
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+module.exports = Sideways_enemy;
 
 },{}],4:[function(require,module,exports){
 
@@ -216,19 +290,26 @@ module.exports = Menu;
   'use strict';
   //required modules (classes) with the help of browserify
   var Protagonist = require('../prefabs/Protagonist');
-  var enemies = require('../prefabs/Bird_enemy');
+  var Sideways_enemy = require('../prefabs/Sideways_enemy');
 
   function Play() {}
   Play.prototype = {
     create: function() {
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
-      //this.game.physics.arcade.gravity.y = 1200;
+
+      //add background images
       this.background = this.game.add.sprite(0,0,'background');
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
+
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
+
+      // create and add a group to hold our enemies (for sprite recycling)
+      this.sideways_enemies = this.game.add.group();
+      var en = new Sideways_enemy(this.game,this.sideways_enemies);
+      this.game.add.existing(en);
 
       // Prevent directions and space key events bubbling up to browser,
       // since these keys will make web page scroll which is not
@@ -251,7 +332,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../prefabs/Bird_enemy":2,"../prefabs/Protagonist":3}],8:[function(require,module,exports){
+},{"../prefabs/Protagonist":2,"../prefabs/Sideways_enemy":3}],8:[function(require,module,exports){
 
 'use strict';
 function Preload() {

@@ -1,3 +1,4 @@
 'background.png' from http://opengameart.org/content/cartoony-cloud-images
 all birds in 'birds/' directory from bevouliin
 preloader.gif from phaser-official (yeoman) github project
+All bird images from http://bevouliin.com
