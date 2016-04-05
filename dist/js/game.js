@@ -156,7 +156,7 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 function setSpriteSize(hero,enemy_sprite){
-  var hero_area = hero.height * hero.width;
+  var hero_area = Math.abs(hero.height * hero.width);
   var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
   var side_length = Math.sqrt(my_area);
 
@@ -226,8 +226,7 @@ function getIdlingAnimationArray(spritesheet_index){
   }
 }
 
-// Returns a random integer between min (included) and max (excluded)
-// Using Math.round() will give you a non-uniform distribution!
+// Returns a uniformly distributed random integer between min (included) and max (excluded)
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
@@ -339,11 +338,20 @@ module.exports = Menu;
       // add a timer
       this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .1, this.generateEnemy, this);
       this.enemyGenerator.timer.start();
+
+      //load audio
+      this.eating_sound = this.game.add.audio('gulp');
+      this.background_music = this.game.add.audio('background-music');
+      this.background_music.loop = true;
+      this.background_music.autoplay = true;
+
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
     },
     bird_collision: function (hero, enemy) {
+      this.eating_sound.play();
+
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
       var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values
@@ -422,7 +430,12 @@ Preload.prototype = {
     this.load.spritesheet('b-24', 'assets/birds/b-24.png',69.25,50);
     this.load.spritesheet('b-25', 'assets/birds/b-25.png',52.667,50);
 
+    //load static images
     this.load.image('background', 'assets/background.png');
+
+    //load sounds
+    this.load.audio('gulp', 'assets/audio/gulp.wav');
+    this.load.audio('background-music', 'assets/audio/The Plucked Bird.mp3');
   },
   create: function() {
     this.asset.cropEnabled = false;

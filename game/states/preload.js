@@ -41,7 +41,12 @@ Preload.prototype = {
     this.load.spritesheet('b-24', 'assets/birds/b-24.png',69.25,50);
     this.load.spritesheet('b-25', 'assets/birds/b-25.png',52.667,50);
 
+    //load static images
     this.load.image('background', 'assets/background.png');
+
+    //load sounds
+    this.load.audio('gulp', 'assets/audio/gulp.wav');
+    this.load.audio('background-music', 'assets/audio/The Plucked Bird.mp3');
   },
   create: function() {
     this.asset.cropEnabled = false;

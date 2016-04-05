@@ -23,11 +23,20 @@
       // add a timer
       this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .1, this.generateEnemy, this);
       this.enemyGenerator.timer.start();
+
+      //load audio
+      this.eating_sound = this.game.add.audio('gulp');
+      this.background_music = this.game.add.audio('background-music');
+      this.background_music.loop = true;
+      this.background_music.autoplay = true;
+
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
     },
     bird_collision: function (hero, enemy) {
+      this.eating_sound.play();
+
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
       var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values

@@ -32,7 +32,7 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 function setSpriteSize(hero,enemy_sprite){
-  var hero_area = hero.height * hero.width;
+  var hero_area = Math.abs(hero.height * hero.width);
   var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
   var side_length = Math.sqrt(my_area);
 
@@ -102,8 +102,7 @@ function getIdlingAnimationArray(spritesheet_index){
   }
 }
 
-// Returns a random integer between min (included) and max (excluded)
-// Using Math.round() will give you a non-uniform distribution!
+// Returns a uniformly distributed random integer between min (included) and max (excluded)
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
