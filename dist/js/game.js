@@ -212,7 +212,9 @@ function getIdlingAnimationArray(spritesheet_index){
     case 20:
     case 22:
       return [0,1,2,3,4,5,6,7];
+    case 10:
     case 12:
+    case 13:
     case 15:
     case 16:
       return [0,1];
@@ -406,14 +408,14 @@ Preload.prototype = {
     this.load.spritesheet('b-15', 'assets/birds/b-15.png',56.5,50);
     this.load.spritesheet('b-16', 'assets/birds/b-16.png',59.5,50);
     this.load.spritesheet('b-17', 'assets/birds/b-17.png',61.8,50);
-    this.load.spritesheet('b-18', 'assets/birds/b-18.png',72.75,50);
-    this.load.spritesheet('b-19', 'assets/birds/b-19.png',72.75,50);
+    this.load.spritesheet('b-18', 'assets/birds/b-18.png',69.5,50);
+    this.load.spritesheet('b-19', 'assets/birds/b-19.png',69.5,50);
     this.load.spritesheet('b-20', 'assets/birds/b-20.png',73.25,50);
     this.load.spritesheet('b-21', 'assets/birds/b-21.png',64.167,50);
     this.load.spritesheet('b-22', 'assets/birds/b-22.png',61.8,50);
     this.load.spritesheet('b-23', 'assets/birds/b-23.png',63,50);
     this.load.spritesheet('b-24', 'assets/birds/b-24.png',69.25,50);
-    this.load.spritesheet('b-25', 'assets/birds/b-25.png',39.167,50);
+    this.load.spritesheet('b-25', 'assets/birds/b-25.png',52.667,50);
 
     this.load.image('background', 'assets/background.png');
   },

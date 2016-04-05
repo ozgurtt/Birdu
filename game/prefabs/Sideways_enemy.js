@@ -88,7 +88,9 @@ function getIdlingAnimationArray(spritesheet_index){
     case 20:
     case 22:
       return [0,1,2,3,4,5,6,7];
+    case 10:
     case 12:
+    case 13:
     case 15:
     case 16:
       return [0,1];
