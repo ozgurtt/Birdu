@@ -342,8 +342,7 @@ module.exports = Menu;
       //load audio
       this.eating_sound = this.game.add.audio('gulp');
       this.background_music = this.game.add.audio('background-music');
-      this.background_music.loop = true;
-      this.background_music.autoplay = true;
+      this.background_music.loopFull(0.6);
 
     },
     update: function() {
@@ -367,6 +366,7 @@ module.exports = Menu;
         enemy.exists = false;
       }
       else{
+        this.background_music.stop();
         this.game.state.start('gameover');
       }
     },
@@ -435,7 +435,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('gulp', 'assets/audio/gulp.wav');
-    this.load.audio('background-music', 'assets/audio/The Plucked Bird.mp3');
+    this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {
     this.asset.cropEnabled = false;

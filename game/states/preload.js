@@ -46,7 +46,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('gulp', 'assets/audio/gulp.wav');
-    this.load.audio('background-music', 'assets/audio/The Plucked Bird.mp3');
+    this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {
     this.asset.cropEnabled = false;
