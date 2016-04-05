@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo $0 #this script requires ImageMagick
+
+for entry in $(pwd)/* #each file in current working directory
+do
+  WIDTH=$(convert $entry -print %w /dev/null)
+  FOUR=$(bc -l <<< "$WIDTH / 4.0")
+  EIGHT=$(bc -l <<< "$WIDTH / 8.0")
+  TEN=$(bc -l <<< "$WIDTH / 10.0")
+	
+  echo "$entry-----width in fourths:$FOUR, in eighths:$EIGHT, in tenths:$TEN"
+done
+
+

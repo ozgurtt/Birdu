@@ -3,16 +3,14 @@
 var num_enemy_spritesheets = 25;
 var animation_flap_delay_for_8_img_sprite = 10;
 
-var Sideways_enemy = function(game, parent) {
+var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
-  parent.add(this);
 
+  this.anchor.setTo(0.5, 0.5);
   this.game.physics.arcade.enableBody(this);
   this.body.allowGravity = false;
 
-  chooseRandomSpriteSheet(this);
-  setSpriteSize(this);
-  startMovement(this);
+  this.reset(hero);
 };
 
 Sideways_enemy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -24,8 +22,22 @@ Sideways_enemy.prototype.update = function() {
 
 };
 
-function setSpriteSize(sprite){
+Sideways_enemy.prototype.reset = function(hero) {
+  chooseRandomSpriteSheet(this);
+  setSpriteSize(hero,this);
+  startMovement(this);
 
+  // Step 6
+  this.exists = true;
+};
+
+function setSpriteSize(hero,enemy_sprite){
+  var hero_area = hero.height * hero.width;
+  var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
+  var side_length = Math.sqrt(my_area);
+
+  enemy_sprite.width = side_length; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
+  enemy_sprite.height = side_length;
 }
 
 function startMovement(sprite){

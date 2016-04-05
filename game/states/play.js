@@ -19,27 +19,43 @@
       this.game.add.existing(this.hero);
 
       // create and add a group to hold our enemies (for sprite recycling)
-      this.sideways_enemies = this.game.add.group();
-      var en = new Sideways_enemy(this.game,this.sideways_enemies);
-      this.game.add.existing(en);
-
-      // Prevent directions and space key events bubbling up to browser,
-      // since these keys will make web page scroll which is not
-      // expected.
-      this.game.input.keyboard.addKeyCapture([
-          Phaser.Keyboard.LEFT,
-          Phaser.Keyboard.RIGHT,
-          Phaser.Keyboard.UP,
-          Phaser.Keyboard.DOWN,
-          Phaser.Keyboard.SPACEBAR
-      ]);
+      this.enemies = this.game.add.group();
+      for(var i=0;i<20;i++){
+        this.generateEnemy();
+      }
     },
     update: function() {
-
+      this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
     },
-    clickListener: function() {
-      this.game.state.start('gameover');
+    bird_collision: function (hero, enemy) {
+      //one of the objects is the hero, the other is a member of the 'enemies' group.
+      //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
+      var hero_area = this.hero.height * this.hero.width;
+      var enemy_area = enemy.height * enemy.width;
+
+      //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
+      if(hero_area > enemy_area){
+        //resize the hero to be a bit bigger than his previous size
+        var new_scale = 1.1 * this.hero.scale.x;
+        this.hero.scale.setTo(new_scale,new_scale);
+
+        //remove the enemy he collides with
+        enemy.exists = false;
+      }
+      else{
+        this.game.state.start('gameover');
+      }
+    },
+    generateEnemy: function() { //generate new pipes, recycling if possible
+        var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has it's exists property set to false.
+        if(!enemy) { //If the pipes group doesn't have any non-existant children, we have to create a new PipeGroup.
+            enemy = new Sideways_enemy(this.game,this.hero);
+            this.game.add.existing(enemy); //must add to game before adding to group
+            this.enemies.add(enemy);
+        }
+        enemy.reset(this.hero);//set enemy to new location, movement pattern, size, spritesheet, etc
     }
+
   };
 
   module.exports = Play;

@@ -53,6 +53,17 @@ Protagonist.prototype.update = function() {
 };
 
 function handlePlayerMovement(player){
+
+  // Prevent directions and space key events bubbling up to browser,
+  // since these keys will make web page scroll which is not
+  // expected.
+  player.game.input.keyboard.addKeyCapture([
+      Phaser.Keyboard.LEFT,
+      Phaser.Keyboard.RIGHT,
+      Phaser.Keyboard.UP,
+      Phaser.Keyboard.DOWN
+  ]);
+
   var moving_horizontally = true;
   player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite / 2;
 
@@ -116,16 +127,14 @@ module.exports = Protagonist;
 var num_enemy_spritesheets = 25;
 var animation_flap_delay_for_8_img_sprite = 10;
 
-var Sideways_enemy = function(game, parent) {
+var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
-  parent.add(this);
 
+  this.anchor.setTo(0.5, 0.5);
   this.game.physics.arcade.enableBody(this);
   this.body.allowGravity = false;
 
-  chooseRandomSpriteSheet(this);
-  setSpriteSize(this);
-  startMovement(this);
+  this.reset(hero);
 };
 
 Sideways_enemy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -137,8 +146,22 @@ Sideways_enemy.prototype.update = function() {
 
 };
 
-function setSpriteSize(sprite){
+Sideways_enemy.prototype.reset = function(hero) {
+  chooseRandomSpriteSheet(this);
+  setSpriteSize(hero,this);
+  startMovement(this);
 
+  // Step 6
+  this.exists = true;
+};
+
+function setSpriteSize(hero,enemy_sprite){
+  var hero_area = hero.height * hero.width;
+  var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
+  var side_length = Math.sqrt(my_area);
+
+  enemy_sprite.width = side_length; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
+  enemy_sprite.height = side_length;
 }
 
 function startMovement(sprite){
@@ -307,27 +330,43 @@ module.exports = Menu;
       this.game.add.existing(this.hero);
 
       // create and add a group to hold our enemies (for sprite recycling)
-      this.sideways_enemies = this.game.add.group();
-      var en = new Sideways_enemy(this.game,this.sideways_enemies);
-      this.game.add.existing(en);
-
-      // Prevent directions and space key events bubbling up to browser,
-      // since these keys will make web page scroll which is not
-      // expected.
-      this.game.input.keyboard.addKeyCapture([
-          Phaser.Keyboard.LEFT,
-          Phaser.Keyboard.RIGHT,
-          Phaser.Keyboard.UP,
-          Phaser.Keyboard.DOWN,
-          Phaser.Keyboard.SPACEBAR
-      ]);
+      this.enemies = this.game.add.group();
+      for(var i=0;i<20;i++){
+        this.generateEnemy();
+      }
     },
     update: function() {
-
+      this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
     },
-    clickListener: function() {
-      this.game.state.start('gameover');
+    bird_collision: function (hero, enemy) {
+      //one of the objects is the hero, the other is a member of the 'enemies' group.
+      //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
+      var hero_area = this.hero.height * this.hero.width;
+      var enemy_area = enemy.height * enemy.width;
+
+      //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
+      if(hero_area > enemy_area){
+        //resize the hero to be a bit bigger than his previous size
+        var new_scale = 1.1 * this.hero.scale.x;
+        this.hero.scale.setTo(new_scale,new_scale);
+
+        //remove the enemy he collides with
+        enemy.exists = false;
+      }
+      else{
+        this.game.state.start('gameover');
+      }
+    },
+    generateEnemy: function() { //generate new pipes, recycling if possible
+        var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has it's exists property set to false.
+        if(!enemy) { //If the pipes group doesn't have any non-existant children, we have to create a new PipeGroup.
+            enemy = new Sideways_enemy(this.game,this.hero);
+            this.game.add.existing(enemy); //must add to game before adding to group
+            this.enemies.add(enemy);
+        }
+        enemy.reset(this.hero);//set enemy to new location, movement pattern, size, spritesheet, etc
     }
+
   };
 
   module.exports = Play;
@@ -349,32 +388,32 @@ Preload.prototype = {
     this.load.setPreloadSprite(this.asset);
 
     //individual images
-    this.load.spritesheet('b-0', 'assets/birds/b-0.png',70,50);
+    this.load.spritesheet('b-0', 'assets/birds/b-0.png',72.75,50);
     this.load.spritesheet('b-1', 'assets/birds/b-1.png',61.25,50);
-    this.load.spritesheet('b-2', 'assets/birds/b-2.png',70,50);
-    this.load.spritesheet('b-3', 'assets/birds/b-3.png',70,50);
-    this.load.spritesheet('b-4', 'assets/birds/b-4.png',70,50);
-    this.load.spritesheet('b-5', 'assets/birds/b-5.png',70,50);
-    this.load.spritesheet('b-6', 'assets/birds/b-6.png',70,50);
-    this.load.spritesheet('b-7', 'assets/birds/b-7.png',70,50);
-    this.load.spritesheet('b-8', 'assets/birds/b-8.png',70,50);
-    this.load.spritesheet('b-9', 'assets/birds/b-9.png',70,50);
-    this.load.spritesheet('b-10', 'assets/birds/b-10.png',70,50);
-    this.load.spritesheet('b-11', 'assets/birds/b-11.png',70,50);
+    this.load.spritesheet('b-2', 'assets/birds/b-2.png',58.75,50);
+    this.load.spritesheet('b-3', 'assets/birds/b-3.png',57,50);
+    this.load.spritesheet('b-4', 'assets/birds/b-4.png',60,50);
+    this.load.spritesheet('b-5', 'assets/birds/b-5.png',61.625,50);
+    this.load.spritesheet('b-6', 'assets/birds/b-6.png',57.333,50);
+    this.load.spritesheet('b-7', 'assets/birds/b-7.png',58.128,45);
+    this.load.spritesheet('b-8', 'assets/birds/b-8.png',49.25,50);
+    this.load.spritesheet('b-9', 'assets/birds/b-9.png',63.25,50);
+    this.load.spritesheet('b-10', 'assets/birds/b-10.png',45.75,50);
+    this.load.spritesheet('b-11', 'assets/birds/b-11.png',72.75,50);
     this.load.spritesheet('b-12', 'assets/birds/b-12.png',61,50);
-    this.load.spritesheet('b-13', 'assets/birds/b-13.png',70,50);
-    this.load.spritesheet('b-14', 'assets/birds/b-14.png',70,50);
-    this.load.spritesheet('b-15', 'assets/birds/b-15.png',70,50);
-    this.load.spritesheet('b-16', 'assets/birds/b-16.png',70,50);
-    this.load.spritesheet('b-17', 'assets/birds/b-17.png',70,50);
-    this.load.spritesheet('b-18', 'assets/birds/b-18.png',70,50);
-    this.load.spritesheet('b-19', 'assets/birds/b-19.png',70,50);
-    this.load.spritesheet('b-20', 'assets/birds/b-20.png',70,50);
-    this.load.spritesheet('b-21', 'assets/birds/b-21.png',70,50);
-    this.load.spritesheet('b-22', 'assets/birds/b-22.png',70,50);
-    this.load.spritesheet('b-23', 'assets/birds/b-23.png',70,50);
-    this.load.spritesheet('b-24', 'assets/birds/b-24.png',70,50);
-    this.load.spritesheet('b-25', 'assets/birds/b-25.png',70,50);
+    this.load.spritesheet('b-13', 'assets/birds/b-13.png',52.25,50);
+    this.load.spritesheet('b-14', 'assets/birds/b-14.png',51.4,50);
+    this.load.spritesheet('b-15', 'assets/birds/b-15.png',56.5,50);
+    this.load.spritesheet('b-16', 'assets/birds/b-16.png',59.5,50);
+    this.load.spritesheet('b-17', 'assets/birds/b-17.png',61.8,50);
+    this.load.spritesheet('b-18', 'assets/birds/b-18.png',72.75,50);
+    this.load.spritesheet('b-19', 'assets/birds/b-19.png',72.75,50);
+    this.load.spritesheet('b-20', 'assets/birds/b-20.png',73.25,50);
+    this.load.spritesheet('b-21', 'assets/birds/b-21.png',64.167,50);
+    this.load.spritesheet('b-22', 'assets/birds/b-22.png',61.8,50);
+    this.load.spritesheet('b-23', 'assets/birds/b-23.png',63,50);
+    this.load.spritesheet('b-24', 'assets/birds/b-24.png',69.25,50);
+    this.load.spritesheet('b-25', 'assets/birds/b-25.png',39.167,50);
 
     this.load.image('background', 'assets/background.png');
   },

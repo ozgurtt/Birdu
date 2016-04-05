@@ -35,6 +35,17 @@ Protagonist.prototype.update = function() {
 };
 
 function handlePlayerMovement(player){
+
+  // Prevent directions and space key events bubbling up to browser,
+  // since these keys will make web page scroll which is not
+  // expected.
+  player.game.input.keyboard.addKeyCapture([
+      Phaser.Keyboard.LEFT,
+      Phaser.Keyboard.RIGHT,
+      Phaser.Keyboard.UP,
+      Phaser.Keyboard.DOWN
+  ]);
+
   var moving_horizontally = true;
   player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite / 2;
 
