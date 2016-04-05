@@ -8,7 +8,9 @@ var Sideways_enemy = function(game,hero) {
 
   this.anchor.setTo(0.5, 0.5);
   this.game.physics.arcade.enableBody(this);
-  this.body.allowGravity = false;
+
+  this.checkWorldBounds = true;
+  this.outOfBoundsKill = true;
 
   this.reset(hero);
 };
@@ -18,18 +20,16 @@ Sideways_enemy.prototype.constructor = Sideways_enemy;
 
 Sideways_enemy.prototype.update = function() {
 
-  // write your prefab's specific update code here
-
 };
 
 Sideways_enemy.prototype.reset = function(hero) {
+  this.exists = true;
+
   chooseRandomSpriteSheet(this);
   setSpriteSize(hero,this);
   startMovement(this);
-
-  // Step 6
-  this.exists = true;
 };
+Sideways_enemy.prototype.revive = Sideways_enemy.prototype.reset; //do the same thing on revive and reset, basically just recycle the sprite
 
 function setSpriteSize(hero,enemy_sprite){
   var hero_area = hero.height * hero.width;
@@ -43,6 +43,8 @@ function setSpriteSize(hero,enemy_sprite){
 function startMovement(sprite){
   //randomly place sprite's y position such that it will be 100% on screen
   sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random();
+  sprite.body.velocity.y = 0;
+  sprite.body.allowGravity = false;
 
   if(Math.random() < 0.5){ //moves from left to right
     //start sprite outside the game on the left side
@@ -88,6 +90,7 @@ function getIdlingAnimationArray(spritesheet_index){
     case 20:
     case 22:
       return [0,1,2,3,4,5,6,7];
+    case 4:
     case 10:
     case 12:
     case 13:
