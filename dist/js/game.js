@@ -133,10 +133,11 @@ var Sideways_enemy = function(game,hero) {
   this.anchor.setTo(0.5, 0.5);
   this.game.physics.arcade.enableBody(this);
 
+  //kill sprite if it moves out of bounds of game screen
   this.checkWorldBounds = true;
   this.outOfBoundsKill = true;
 
-  this.reset(hero);
+  this.createNewEnemyBehaviors(hero);
 };
 
 Sideways_enemy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -146,14 +147,13 @@ Sideways_enemy.prototype.update = function() {
 
 };
 
-Sideways_enemy.prototype.reset = function(hero) {
-  this.exists = true;
+Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
+  this.reset(0,0);//This moves the Game Object to the given x/y world coordinates and sets fresh, exists, visible and renderable to true.
 
   chooseRandomSpriteSheet(this);
   setSpriteSize(hero,this);
-  startMovement(this);
+  determineSpriteBehavior(this);
 };
-Sideways_enemy.prototype.revive = Sideways_enemy.prototype.reset; //do the same thing on revive and reset, basically just recycle the sprite
 
 function setSpriteSize(hero,enemy_sprite){
   var hero_area = hero.height * hero.width;
@@ -164,23 +164,23 @@ function setSpriteSize(hero,enemy_sprite){
   enemy_sprite.height = side_length;
 }
 
-function startMovement(sprite){
+function determineSpriteBehavior(sprite){
   //randomly place sprite's y position such that it will be 100% on screen
   sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random();
   sprite.body.velocity.y = 0;
   sprite.body.allowGravity = false;
 
   if(Math.random() < 0.5){ //moves from left to right
-    //start sprite outside the game on the left side
-    sprite.position.x  = - sprite.width;
+    //start sprite a little bit outside the game on the left side
+    sprite.position.x  = - sprite.width*.5;
 
     sprite.body.velocity.x = 100;
     sprite.scale.x = Math.abs(sprite.scale.x); //face sprite right
 
   }
   else{ //moves from right to left
-    //start sprite outside the game on the right side
-    sprite.position.x  = sprite.game.world.width + sprite.width;
+    //start sprite a little bit outside the game on the right side
+    sprite.position.x  = sprite.game.world.width + sprite.width*.5;
 
     sprite.body.velocity.x = -100;
     sprite.scale.x = -1 * Math.abs(sprite.scale.x); //face sprite left
@@ -330,7 +330,6 @@ module.exports = Menu;
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
-
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
 
@@ -347,7 +346,7 @@ module.exports = Menu;
     bird_collision: function (hero, enemy) {
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
-      var hero_area = Math.abs(this.hero.height * this.hero.width);
+      var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values
       var enemy_area = Math.abs(enemy.height * enemy.width);
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
@@ -366,8 +365,8 @@ module.exports = Menu;
     generateEnemy: function() { //generate new pipes, recycling if possible
         var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has its 'exists' property set to false.
 
-        if(enemy) { //non-existing child of this.enemies found! Revive the poor fellow
-          enemy.revive(this.hero);
+        if(enemy) { //non-existing child of this.enemies found! Reset the poor fellow
+          enemy.createNewEnemyBehaviors(this.hero);
         }else{//child not found, create a new one
           enemy = new Sideways_enemy(this.game,this.hero);
           this.game.add.existing(enemy); //must add to game before adding to group

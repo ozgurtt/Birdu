@@ -14,7 +14,6 @@
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
-
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
 
@@ -31,7 +30,7 @@
     bird_collision: function (hero, enemy) {
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
-      var hero_area = Math.abs(this.hero.height * this.hero.width);
+      var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values
       var enemy_area = Math.abs(enemy.height * enemy.width);
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
@@ -50,8 +49,8 @@
     generateEnemy: function() { //generate new pipes, recycling if possible
         var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has its 'exists' property set to false.
 
-        if(enemy) { //non-existing child of this.enemies found! Revive the poor fellow
-          enemy.revive(this.hero);
+        if(enemy) { //non-existing child of this.enemies found! Reset the poor fellow
+          enemy.createNewEnemyBehaviors(this.hero);
         }else{//child not found, create a new one
           enemy = new Sideways_enemy(this.game,this.hero);
           this.game.add.existing(enemy); //must add to game before adding to group
