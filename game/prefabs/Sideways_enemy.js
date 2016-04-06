@@ -32,12 +32,15 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 function setSpriteSize(hero,enemy_sprite){
+  var aspect_ratio = Math.abs(enemy_sprite.width / enemy_sprite.height);
+
   var hero_area = Math.abs(hero.height * hero.width);
   var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
-  var side_length = Math.sqrt(my_area);
 
-  enemy_sprite.width = side_length; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
-  enemy_sprite.height = side_length;
+  var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
+
+  enemy_sprite.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
+  enemy_sprite.height = new_width * (1 / aspect_ratio);
 }
 
 function determineSpriteBehavior(sprite){
