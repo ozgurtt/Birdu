@@ -427,7 +427,7 @@ module.exports = Menu;
       width_increase_size *= Math.sign(this.hero.width);//width can be + or -, find its sign so it increases the correct amount
 
       this.hero.width = this.hero.width + width_increase_size;
-      this.hero.height *= Math.abs(hero_aspect_ratio);
+      this.hero.height = Math.abs(this.hero.width * (1 / hero_aspect_ratio) );
 
       return Math.abs(width_increase_size);
     },
