@@ -8,7 +8,6 @@ var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
 
   this.anchor.setTo(0.5, 0.5);
-  this.scale.setTo(.5,.5);
 
   // add animations specific for this sprite, and and play them
   this.animations.add('idling', [0,1,2,3], animation_flap_delay_for_8_img_sprite, true);
