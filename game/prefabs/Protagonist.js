@@ -4,6 +4,8 @@ var movement_speed = 90;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60;
 
+var base_hero_x_length_increase = .5;
+
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
 
@@ -21,6 +23,9 @@ var Protagonist = function(game, x, y, frame) {
   this.body.bounce.set(0.4);
   this.body.drag.setTo(drag_value,drag_value) ;
 
+  //start at center of screen
+  this.position.setTo(game.world.centerX,game.world.centerY);
+
   //custom properties
   this.alive = false;
 };
@@ -29,11 +34,27 @@ Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
 Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
-  handlePlayerMovement(this);
+  this.handlePlayerMovement(this);
 
 };
 
-function handlePlayerMovement(player){
+//when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
+Protagonist.prototype.sizeIncrease = function(enemy_area){
+  var hero_aspect_ratio = Math.abs(this.width / this.height);
+  var hero_area = Math.abs(this.height * this.width);
+
+  var area_ratio = enemy_area / hero_area;
+  var width_increase_size = base_hero_x_length_increase * (1 + area_ratio);
+
+  width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
+
+  this.width = this.width + width_increase_size;
+  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
+
+  return Math.abs(width_increase_size);
+},
+
+Protagonist.prototype.handlePlayerMovement = function(player){
 
   // Prevent directions and space key events bubbling up to browser,
   // since these keys will make web page scroll which is not
@@ -96,8 +117,5 @@ function handlePlayerMovement(player){
 
 }
 
-function getProtagonistArea(){
-  return this.height * this.width;
-}
 
 module.exports = Protagonist;

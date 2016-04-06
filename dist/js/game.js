@@ -22,6 +22,8 @@ var movement_speed = 90;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60;
 
+var base_hero_x_length_increase = .5;
+
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
 
@@ -39,6 +41,9 @@ var Protagonist = function(game, x, y, frame) {
   this.body.bounce.set(0.4);
   this.body.drag.setTo(drag_value,drag_value) ;
 
+  //start at center of screen
+  this.position.setTo(game.world.centerX,game.world.centerY);
+
   //custom properties
   this.alive = false;
 };
@@ -47,11 +52,27 @@ Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
 Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
-  handlePlayerMovement(this);
+  this.handlePlayerMovement(this);
 
 };
 
-function handlePlayerMovement(player){
+//when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
+Protagonist.prototype.sizeIncrease = function(enemy_area){
+  var hero_aspect_ratio = Math.abs(this.width / this.height);
+  var hero_area = Math.abs(this.height * this.width);
+
+  var area_ratio = enemy_area / hero_area;
+  var width_increase_size = base_hero_x_length_increase * (1 + area_ratio);
+
+  width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
+
+  this.width = this.width + width_increase_size;
+  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
+
+  return Math.abs(width_increase_size);
+},
+
+Protagonist.prototype.handlePlayerMovement = function(player){
 
   // Prevent directions and space key events bubbling up to browser,
   // since these keys will make web page scroll which is not
@@ -114,9 +135,6 @@ function handlePlayerMovement(player){
 
 }
 
-function getProtagonistArea(){
-  return this.height * this.width;
-}
 
 module.exports = Protagonist;
 
@@ -321,7 +339,6 @@ module.exports = Menu;
   var Protagonist = require('../prefabs/Protagonist');
   var Sideways_enemy = require('../prefabs/Sideways_enemy');
   var text_margin_from_side_of_screen = 20;
-  var base_hero_x_length_increase = .5;
 
   function Play() {}
   Play.prototype = {
@@ -401,7 +418,7 @@ module.exports = Menu;
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        var scoreIncrease = this.heroSizeIncrease(enemy_area) * (Math.random() * .5 + .75) * 100;
+        var scoreIncrease = hero.sizeIncrease(enemy_area) * (Math.random() * .5 + .75) * 100;
         scoreIncrease = Math.round(scoreIncrease);
 
         this.createScoreAnimation(this.hero.x,this.hero.y,scoreIncrease);
@@ -413,23 +430,6 @@ module.exports = Menu;
         this.background_music.stop();
         this.game.state.start('gameover');
       }
-    },
-    //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
-    heroSizeIncrease(enemy_area){
-      var hero_aspect_ratio = Math.abs(this.hero.width / this.hero.height);
-      var hero_area = Math.abs(this.hero.height * this.hero.width);
-
-      console.log(hero_aspect_ratio);
-
-      var area_ratio = enemy_area / hero_area;
-      var width_increase_size = base_hero_x_length_increase * (1 + area_ratio);
-
-      width_increase_size *= Math.sign(this.hero.width);//width can be + or -, find its sign so it increases the correct amount
-
-      this.hero.width = this.hero.width + width_increase_size;
-      this.hero.height = Math.abs(this.hero.width * (1 / hero_aspect_ratio) );
-
-      return Math.abs(width_increase_size);
     },
     generateEnemy: function() { //generate new pipes, recycling if possible
         var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has its 'exists' property set to false.
