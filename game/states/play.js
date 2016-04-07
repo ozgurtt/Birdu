@@ -22,7 +22,7 @@
       this.enemies = this.game.add.group();
 
       // add a timer
-      this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .1, this.generateEnemy, this);
+      this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .4, this.generateEnemy, this);
       this.enemyGenerator.timer.start();
 
       //load audio

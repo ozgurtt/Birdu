@@ -1,12 +1,12 @@
 'use strict';
 
-var movement_speed = 90;
+var movement_speed = 105;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60
 var base_hero_x_length_increase = .5;
 
 var Protagonist = function(game, x, y, frame) {
-  Phaser.Sprite.call(this, game, x, y, 'b-26', frame);
+  Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
 
   this.anchor.setTo(0.5, 0.5);
   this.setSizeFromWidth(50);

@@ -18,13 +18,13 @@ window.onload = function () {
 },{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
 'use strict';
 
-var movement_speed = 90;
+var movement_speed = 105;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60
 var base_hero_x_length_increase = .5;
 
 var Protagonist = function(game, x, y, frame) {
-  Phaser.Sprite.call(this, game, x, y, 'b-26', frame);
+  Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
 
   this.anchor.setTo(0.5, 0.5);
   this.setSizeFromWidth(50);
@@ -148,6 +148,8 @@ module.exports = Protagonist;
 
 var num_enemy_spritesheets = 25;
 var animation_flap_delay_for_8_img_sprite = 10;
+//spritesheets of things other than a flapping/idling animation
+var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
 
 var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
@@ -191,7 +193,7 @@ function setSpriteSize(hero,enemy_sprite){
 
 function determineSpriteBehavior(sprite){
   //randomly place sprite's y position such that it will be 100% on screen
-  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random();
+  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random() + sprite.height/2;
   sprite.body.velocity.y = 0;
   sprite.body.allowGravity = false;
 
@@ -216,6 +218,10 @@ function chooseRandomSpriteSheet(sprite){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = getRandomInt(1, 35);
 
+  while(forbidden_img_ids_for_flapping.indexOf(randImgId) > -1 ){
+    randImgId = getRandomInt(1, 35);
+  }
+
   //load sprite picture by concatenating the prefix 'b-' with the random sprite number.
   sprite.loadTexture('b-'+randImgId,0,true);
 
@@ -229,22 +235,32 @@ function chooseRandomSpriteSheet(sprite){
 //spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
 function getIdlingAnimationArray(spritesheet_index){
   switch(spritesheet_index){
-    case 1:
     case 5:
-    case 7:
+    case 10:
+    case 15:
+    case 18:
+    case 30:
+    case 32:
+    case 33:
+      return [0,1,2,3,4,5,6,7];
+    case 24:
+      return [0,1,2,3,4,5,6];
     case 8:
-    case 9:
+    case 13:
     case 14:
+    case 16:
     case 17:
+    case 19:
     case 20:
     case 22:
-      return [0,1,2,3,4,5,6,7];
-    case 4:
-    case 10:
-    case 12:
-    case 13:
-    case 15:
-    case 16:
+    case 25:
+    case 26:
+    case 27:
+    case 29:
+    case 31:
+    case 34:
+    case 35:
+    case 36:
       return [0,1];
     default:
       return [0,1,2,3];
@@ -362,7 +378,7 @@ module.exports = Menu;
       this.enemies = this.game.add.group();
 
       // add a timer
-      this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .1, this.generateEnemy, this);
+      this.enemyGenerator = this.game.time.events.loop(Phaser.Timer.SECOND * .4, this.generateEnemy, this);
       this.enemyGenerator.timer.start();
 
       //load audio
@@ -469,42 +485,43 @@ Preload.prototype = {
     this.load.setPreloadSprite(this.asset);
 
     //spritesheets
-    this.load.spritesheet('b-10', 'assets/birds/b-10.png', 127.00000000000000000000, 98);
-    this.load.spritesheet('b-11', 'assets/birds/b-11.png', 126.00000000000000000000, 102);
-    this.load.spritesheet('b-12', 'assets/birds/b-12.png', 126.00000000000000000000, 93);
-    this.load.spritesheet('b-13', 'assets/birds/b-13.png', 124.00000000000000000000, 90);
-    this.load.spritesheet('b-14', 'assets/birds/b-14.png', 124.00000000000000000000, 98);
-    this.load.spritesheet('b-15', 'assets/birds/b-15.png', 127.00000000000000000000, 70);
-    this.load.spritesheet('b-16', 'assets/birds/b-16.png', 124.00000000000000000000, 92);
-    this.load.spritesheet('b-17', 'assets/birds/b-17.png', 124.00000000000000000000, 103);
-    this.load.spritesheet('b-18', 'assets/birds/b-18.png', 127.00000000000000000000, 98);
-    this.load.spritesheet('b-19', 'assets/birds/b-19.png', 124.00000000000000000000, 87);
-    this.load.spritesheet('b-1', 'assets/birds/b-1.png', 126.00000000000000000000, 78);
-    this.load.spritesheet('b-20', 'assets/birds/b-20.png', 124.00000000000000000000, 100);
-    this.load.spritesheet('b-21', 'assets/birds/b-21.png', 126.00000000000000000000, 94);
-    this.load.spritesheet('b-22', 'assets/birds/b-22.png', 124.00000000000000000000, 100);
-    this.load.spritesheet('b-23', 'assets/birds/b-23.png', 124.00000000000000000000, 99);
-    this.load.spritesheet('b-24', 'assets/birds/b-24.png', 126.85714285714285714285, 86);
-    this.load.spritesheet('b-25', 'assets/birds/b-25.png', 124.00000000000000000000, 99);
-    this.load.spritesheet('b-26', 'assets/birds/b-26.png', 121.50000000000000000000, 120);
-    this.load.spritesheet('b-27', 'assets/birds/b-27.png', 124.00000000000000000000, 110);
-    this.load.spritesheet('b-28', 'assets/birds/b-28.png', 126.00000000000000000000, 93);
-    this.load.spritesheet('b-29', 'assets/birds/b-29.png', 124.00000000000000000000, 90);
-    this.load.spritesheet('b-2', 'assets/birds/b-2.png', 126.00000000000000000000, 82);
-    this.load.spritesheet('b-30', 'assets/birds/b-30.png', 127.00000000000000000000, 118);
-    this.load.spritesheet('b-31', 'assets/birds/b-31.png', 123.50000000000000000000, 120);
-    this.load.spritesheet('b-32', 'assets/birds/b-32.png', 127.00000000000000000000, 120);
-    this.load.spritesheet('b-33', 'assets/birds/b-33.png', 127.00000000000000000000, 94);
-    this.load.spritesheet('b-34', 'assets/birds/b-34.png', 124.00000000000000000000, 98);
-    this.load.spritesheet('b-35', 'assets/birds/b-35.png', 124.00000000000000000000, 106);
-    this.load.spritesheet('b-36', 'assets/birds/b-36.png', 124.00000000000000000000, 109);
-    this.load.spritesheet('b-3', 'assets/birds/b-3.png', 126.00000000000000000000, 86);
-    this.load.spritesheet('b-4', 'assets/birds/b-4.png', 126.00000000000000000000, 84);
-    this.load.spritesheet('b-5', 'assets/birds/b-5.png', 127.00000000000000000000, 82);
-    this.load.spritesheet('b-6', 'assets/birds/b-6.png', 126.00000000000000000000, 95);
-    this.load.spritesheet('b-7', 'assets/birds/b-7.png', 126.00000000000000000000, 75);
-    this.load.spritesheet('b-8', 'assets/birds/b-8.png', 124.00000000000000000000, 104);
-    this.load.spritesheet('b-9', 'assets/birds/b-9.png', 126.00000000000000000000, 94);
+    this.load.spritesheet('b-10', 'assets/birds/b-10.png', 114.00000000000000000000, 93);
+    this.load.spritesheet('b-11', 'assets/birds/b-11.png', 118.00000000000000000000, 100);
+    this.load.spritesheet('b-12', 'assets/birds/b-12.png', 131.00000000000000000000, 101);
+    this.load.spritesheet('b-13', 'assets/birds/b-13.png', 117.00000000000000000000, 88);
+    this.load.spritesheet('b-14', 'assets/birds/b-14.png', 117.00000000000000000000, 95);
+    this.load.spritesheet('b-15', 'assets/birds/b-15.png', 123.00000000000000000000, 72);
+    this.load.spritesheet('b-16', 'assets/birds/b-16.png', 128.00000000000000000000, 98);
+    this.load.spritesheet('b-17', 'assets/birds/b-17.png', 117.00000000000000000000, 101);
+    this.load.spritesheet('b-18', 'assets/birds/b-18.png', 115.00000000000000000000, 94);
+    this.load.spritesheet('b-19', 'assets/birds/b-19.png', 117.00000000000000000000, 85);
+    this.load.spritesheet('b-1', 'assets/birds/b-1.png', 119.00000000000000000000, 78);
+    this.load.spritesheet('b-20', 'assets/birds/b-20.png', 121.00000000000000000000, 100);
+    this.load.spritesheet('b-21', 'assets/birds/b-21.png', 120.00000000000000000000, 94);
+    this.load.spritesheet('b-22', 'assets/birds/b-22.png', 115.00000000000000000000, 96);
+    this.load.spritesheet('b-23', 'assets/birds/b-23.png', 115.00000000000000000000, 82);
+    this.load.spritesheet('b-24', 'assets/birds/b-24.png', 115.00000000000000000000, 82);
+    this.load.spritesheet('b-25', 'assets/birds/b-25.png', 124.00000000000000000000, 102);
+    this.load.spritesheet('b-26', 'assets/birds/b-26.png', 120.00000000000000000000, 132);
+    this.load.spritesheet('b-27', 'assets/birds/b-27.png', 119.00000000000000000000, 110);
+    this.load.spritesheet('b-28', 'assets/birds/b-28.png', 123.00000000000000000000, 96);
+    this.load.spritesheet('b-29', 'assets/birds/b-29.png', 116.00000000000000000000, 87);
+    this.load.spritesheet('b-2', 'assets/birds/b-2.png', 119.00000000000000000000, 81);
+    this.load.spritesheet('b-30', 'assets/birds/b-30.png', 117.00000000000000000000, 115);
+    this.load.spritesheet('b-31', 'assets/birds/b-31.png', 119.00000000000000000000, 121);
+    this.load.spritesheet('b-32', 'assets/birds/b-32.png', 127.00000000000000000000, 148);
+    this.load.spritesheet('b-33', 'assets/birds/b-33.png', 126.00000000000000000000, 99);
+    this.load.spritesheet('b-34', 'assets/birds/b-34.png', 125.00000000000000000000, 102);
+    this.load.spritesheet('b-35', 'assets/birds/b-35.png', 117.00000000000000000000, 104);
+    this.load.spritesheet('b-36', 'assets/birds/b-36.png', 118.00000000000000000000, 107);
+    this.load.spritesheet('b-3', 'assets/birds/b-3.png', 119.00000000000000000000, 85);
+    this.load.spritesheet('b-4', 'assets/birds/b-4.png', 119.00000000000000000000, 83);
+    this.load.spritesheet('b-5', 'assets/birds/b-5.png', 113.00000000000000000000, 77);
+    this.load.spritesheet('b-6', 'assets/birds/b-6.png', 124.00000000000000000000, 98);
+    this.load.spritesheet('b-7', 'assets/birds/b-7.png', 115.00000000000000000000, 72);
+    this.load.spritesheet('b-8', 'assets/birds/b-8.png', 123.00000000000000000000, 107);
+    this.load.spritesheet('b-9', 'assets/birds/b-9.png', 120.00000000000000000000, 94);
+
 
 
     //load static images

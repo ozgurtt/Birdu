@@ -2,6 +2,8 @@
 
 var num_enemy_spritesheets = 25;
 var animation_flap_delay_for_8_img_sprite = 10;
+//spritesheets of things other than a flapping/idling animation
+var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
 
 var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
@@ -45,7 +47,7 @@ function setSpriteSize(hero,enemy_sprite){
 
 function determineSpriteBehavior(sprite){
   //randomly place sprite's y position such that it will be 100% on screen
-  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random();
+  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random() + sprite.height/2;
   sprite.body.velocity.y = 0;
   sprite.body.allowGravity = false;
 
@@ -70,6 +72,10 @@ function chooseRandomSpriteSheet(sprite){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = getRandomInt(1, 35);
 
+  while(forbidden_img_ids_for_flapping.indexOf(randImgId) > -1 ){
+    randImgId = getRandomInt(1, 35);
+  }
+
   //load sprite picture by concatenating the prefix 'b-' with the random sprite number.
   sprite.loadTexture('b-'+randImgId,0,true);
 
@@ -83,22 +89,32 @@ function chooseRandomSpriteSheet(sprite){
 //spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
 function getIdlingAnimationArray(spritesheet_index){
   switch(spritesheet_index){
-    case 1:
     case 5:
-    case 7:
+    case 10:
+    case 15:
+    case 18:
+    case 30:
+    case 32:
+    case 33:
+      return [0,1,2,3,4,5,6,7];
+    case 24:
+      return [0,1,2,3,4,5,6];
     case 8:
-    case 9:
+    case 13:
     case 14:
+    case 16:
     case 17:
+    case 19:
     case 20:
     case 22:
-      return [0,1,2,3,4,5,6,7];
-    case 4:
-    case 10:
-    case 12:
-    case 13:
-    case 15:
-    case 16:
+    case 25:
+    case 26:
+    case 27:
+    case 29:
+    case 31:
+    case 34:
+    case 35:
+    case 36:
       return [0,1];
     default:
       return [0,1,2,3];
