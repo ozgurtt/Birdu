@@ -68,7 +68,7 @@ function determineSpriteBehavior(sprite){
 
 function chooseRandomSpriteSheet(sprite){
   //bird spritesheets are numbered 0-25, choose one at random
-  var randImgId = getRandomInt(0, 26);
+  var randImgId = getRandomInt(1, 35);
 
   //load sprite picture by concatenating the prefix 'b-' with the random sprite number.
   sprite.loadTexture('b-'+randImgId,0,true);

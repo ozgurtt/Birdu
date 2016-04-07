@@ -2,27 +2,29 @@
 
 echo $0 #this script requires ImageMagick, must be ran with bash
 
+#copied from http://askubuntu.com/questions/179898/how-to-round-decimals-using-bc-in-bash
+round()
+{
+echo $(printf %.f $(echo "scale=$2;(((10^$2)*$1)+0.5)/(10^$2)" | bc))
+};
+
+
+
+
+
 for entry in $(pwd)/* #each file in current working directory
 do
   WIDTH=$(convert $entry -print %w /dev/null)
+  HEIGHT=$(convert $entry -print %h /dev/null)
 
   #do floating point division with the 'bc' command
-  TWO=$(bc -l <<< "$WIDTH / 2.0")
-  FOUR=$(bc -l <<< "$WIDTH / 4.0")
-  SIX=$(bc -l <<< "$WIDTH / 6.0")
-  EIGHT=$(bc -l <<< "$WIDTH / 8.0")
-  TEN=$(bc -l <<< "$WIDTH / 10.0")
-  ELEVEN=$(bc -l <<< "$WIDTH / 11.0")
+  #I expect the images to be about 120 pixels. Thus use that to approximate. This may be wrong, and the output will need to be checked in Phaser
+  NUM_FRAMES=$(bc -l <<< "$WIDTH / 120.0")
+  NUM_FRAMES=$(round $NUM_FRAMES 10) #Round to nearest integer
+  INDIVIDUAL_WIDTH=$(bc -l <<< "$WIDTH / $NUM_FRAMES")
 
-  #format the numbers to 3 decimal points
-  TWO=$(printf '%.3f\n' $TWO)
-  FOUR=$(printf '%.3f\n' $FOUR)
-  SIX=$(printf '%.3f\n' $SIX)
-  EIGHT=$(printf '%.3f\n' $EIGHT)
-  TEN=$(printf '%.3f\n' $TEN)
-  ELEVEN=$(printf '%.3f\n' $ELEVEN)
-	
-  echo "$entry-----width in 2s:: $TWO, 4s::$FOUR, 6s::$SIX, 8s::$EIGHT, 10s::$TEN, 11s::$ELEVEN"
+  FILE_NAME=$(basename $entry)
+  echo "this.load.spritesheet('${FILE_NAME%.*}', 'assets/birds/$(basename $entry)', $INDIVIDUAL_WIDTH, $HEIGHT);"
 done
 
 

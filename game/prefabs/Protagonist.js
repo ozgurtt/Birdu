@@ -2,14 +2,14 @@
 
 var movement_speed = 90;
 var drag_value = 75;
-var animation_flap_delay_for_8_img_sprite = 60;
-
+var animation_flap_delay_for_8_img_sprite = 60
 var base_hero_x_length_increase = .5;
 
 var Protagonist = function(game, x, y, frame) {
-  Phaser.Sprite.call(this, game, x, y, 'b-1', frame);
+  Phaser.Sprite.call(this, game, x, y, 'b-26', frame);
 
   this.anchor.setTo(0.5, 0.5);
+  this.setSizeFromWidth(50);
 
   // add animations specific for this sprite, and and play them
   this.animations.add('idling', [0,1,2,3], animation_flap_delay_for_8_img_sprite, true);
@@ -40,7 +40,6 @@ Protagonist.prototype.update = function() {
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
 Protagonist.prototype.sizeIncrease = function(enemy_area){
-  var hero_aspect_ratio = Math.abs(this.width / this.height);
   var hero_area = Math.abs(this.height * this.width);
 
   var area_ratio = enemy_area / hero_area;
@@ -48,10 +47,16 @@ Protagonist.prototype.sizeIncrease = function(enemy_area){
 
   width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
 
-  this.width = this.width + width_increase_size;
-  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
+  this.setSizeFromWidth(this.width + width_increase_size);
 
   return Math.abs(width_increase_size);
+},
+
+Protagonist.prototype.setSizeFromWidth = function(new_width){
+  var hero_aspect_ratio = Math.abs(this.width / this.height);
+
+  this.width = new_width;
+  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
 },
 
 Protagonist.prototype.handlePlayerMovement = function(player){
