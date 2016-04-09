@@ -181,7 +181,7 @@ function setSpriteSize(hero,enemy_sprite){
   var aspect_ratio = Math.abs(enemy_sprite.width / enemy_sprite.height);
 
   var hero_area = Math.abs(hero.height * hero.width);
-  var my_area = hero_area * (Math.random() * 3 + 0.1) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
+  var my_area = hero_area * (Math.random() * 3.5 + 0.5) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
 
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
 
@@ -297,18 +297,38 @@ module.exports = Boot;
 function GameOver() {}
 
 GameOver.prototype = {
-  preload: function () {
-
+  init: function(gameScoreValue) {
+    this.gameScore = gameScoreValue;
   },
   create: function () {
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.titleText = this.game.add.text(this.game.world.centerX,100, 'Game Over!', style);
+    //set background image
+    this.background = this.game.add.sprite(0,0,'background');
+    this.background.height = this.game.world.height;
+    this.background.width = this.game.world.width;
+
+    //Game Over! text
+    var style = { font: '65px Arial', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
+    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'Game Over!', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
-    this.congratsText = this.game.add.text(this.game.world.centerX, 200, 'You Win!', { font: '32px Arial', fill: '#ffffff', align: 'center'});
+    //new high score text
+    style.font = '32px Arial';
+    this.congratsTextString = "Better luck next time. ";
+    if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
+        var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
+        if (this.gameScore > max){
+          localStorage["maxScore"] = this.gameScore;
+          this.congratsTextString += "\n New High Score: "+this.gameScore
+        }
+    }
+
+    //generic good job text
+    this.congratsText = this.game.add.text(this.game.world.centerX,  this.titleText.y + this.titleText.height/2 + 100, this.congratsTextString, style);
     this.congratsText.anchor.setTo(0.5, 0.5);
 
-    this.instructionText = this.game.add.text(this.game.world.centerX, 300, 'Click To Play Again', { font: '16px Arial', fill: '#ffffff', align: 'center'});
+    //restart game text
+    style.font = '16px Arial';
+    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click To Play Again', style);
     this.instructionText.anchor.setTo(0.5, 0.5);
   },
   update: function () {
@@ -329,18 +349,37 @@ Menu.prototype = {
 
   },
   create: function() {
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center'};
-    this.sprite = this.game.add.sprite(this.game.world.centerX, 138, 'yeoman');
+    //background image
+    this.background = this.game.add.sprite(0,0,'background');
+    this.background.height = this.game.world.height;
+    this.background.width = this.game.world.width;
+
+    //font styles for all text
+    var style = { font: '65px Arial', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
+
+    //main image/logo + its animations
+    this.sprite = this.game.add.sprite(this.game.world.centerX, 138, 'b-28');
     this.sprite.anchor.setTo(0.5, 0.5);
-
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, '\'Allo, \'Allo!', style);
-    this.titleText.anchor.setTo(0.5, 0.5);
-
-    this.instructionsText = this.game.add.text(this.game.world.centerX, 400, 'Click anywhere to play "Click The Yeoman Logo"', { font: '16px Arial', fill: '#ffffff', align: 'center'});
-    this.instructionsText.anchor.setTo(0.5, 0.5);
-
     this.sprite.angle = -20;
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
+
+    //title of game text
+    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'Birdu', style);
+    this.titleText.anchor.setTo(0.5, 0.5);
+    this
+
+    style.font = '18px Arial';
+
+    //display high score if possible
+    if( typeof(Storage) !== "undefined") {
+      var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
+      this.maxScore = this.game.add.text(this.game.world.centerX, this.titleText.y + this.titleText.height/2 + 25, 'High Score: '+max, style);
+      this.maxScore.anchor.setTo(0.5, 0.5);
+    }
+
+    //tell user how to play (text)
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.titleText.y + 100, 'Eat smaller birds to survive. Click to play!',style);
+    this.instructionsText.anchor.setTo(0.5, 0.5);
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {
@@ -450,7 +489,7 @@ module.exports = Menu;
       }
       else{
         this.background_music.stop();
-        this.game.state.start('gameover');
+        this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
       }
     },
     generateEnemy: function() { //generate new pipes, recycling if possible

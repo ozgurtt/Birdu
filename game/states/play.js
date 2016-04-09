@@ -96,7 +96,7 @@
       }
       else{
         this.background_music.stop();
-        this.game.state.start('gameover');
+        this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
       }
     },
     generateEnemy: function() { //generate new pipes, recycling if possible
