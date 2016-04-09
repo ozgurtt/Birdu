@@ -1,8 +1,6 @@
 'use strict';
 
-var movement_speed = 105;
 var drag_value = 75;
-var animation_flap_delay_for_8_img_sprite = 60
 var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
@@ -12,7 +10,7 @@ var Protagonist = function(game, x, y, frame) {
   this.setSizeFromWidth(50);
 
   // add animations specific for this sprite, and and play them
-  this.animations.add('idling', [0,1,2,3], animation_flap_delay_for_8_img_sprite, true);
+  this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
   this.animations.play('idling');
 
   // Bird PHYSICS. We want him to emulate the sky. So he will have to glide a bit before stopping, and will have gravity (check player movement method)
@@ -34,7 +32,6 @@ var Protagonist = function(game, x, y, frame) {
   this.emitter.setYSpeed(-200,0);
   this.emitter.minParticleScale = 1;
   this.emitter.maxParticleScale = 1.2;
-  this.emitter.setAll('body.allowGravity', true);
 };
 
 Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
@@ -92,21 +89,21 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   ]);
 
   var moving_horizontally = true;
-  player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite / 2;
+  player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
   //HORIZONTAL MOVEMENT
   if (player.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
   {
     player.game.physics.arcade.gravity.y = 0;
     player.scale.x = Math.abs(player.scale.x); //face sprite right
-    player.body.velocity.x = movement_speed;
+    player.body.velocity.x = this.game.global.hero_movement_speed;
     player.angle = 15;
   }
   else if (player.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
   {
     player.game.physics.arcade.gravity.y = 0;
     player.scale.x = -1 * Math.abs(player.scale.x);//face sprite left
-    player.body.velocity.x = -movement_speed;
+    player.body.velocity.x = -this.game.global.hero_movement_speed;
     player.angle = -15;
   }else{
     moving_horizontally = false
@@ -116,7 +113,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   if (player.game.input.keyboard.isDown(Phaser.Keyboard.UP))
   {
     player.game.physics.arcade.gravity.y = 0;
-    player.body.velocity.y = -movement_speed;
+    player.body.velocity.y = -this.game.global.hero_movement_speed;
     if(player.scale.x > 0){ //sprite is facing right
       player.angle = -15;
     }else{//sprite is facing left
@@ -125,7 +122,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   }
   else if (player.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
   {
-    player.body.velocity.y = movement_speed;
+    player.body.velocity.y = this.game.global.hero_movement_speed;
     if(player.scale.x > 0){ //sprite is facing right
       player.angle = 15;
     }else{//sprite is facing left
@@ -136,7 +133,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   else if(!moving_horizontally)
   {
     player.game.physics.arcade.gravity.y = 90;
-    player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite;
+    player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
     player.angle = 0;
   }
 

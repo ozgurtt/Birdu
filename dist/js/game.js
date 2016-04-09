@@ -18,9 +18,7 @@ window.onload = function () {
 },{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
 'use strict';
 
-var movement_speed = 105;
 var drag_value = 75;
-var animation_flap_delay_for_8_img_sprite = 60
 var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
@@ -30,7 +28,7 @@ var Protagonist = function(game, x, y, frame) {
   this.setSizeFromWidth(50);
 
   // add animations specific for this sprite, and and play them
-  this.animations.add('idling', [0,1,2,3], animation_flap_delay_for_8_img_sprite, true);
+  this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
   this.animations.play('idling');
 
   // Bird PHYSICS. We want him to emulate the sky. So he will have to glide a bit before stopping, and will have gravity (check player movement method)
@@ -52,7 +50,6 @@ var Protagonist = function(game, x, y, frame) {
   this.emitter.setYSpeed(-200,0);
   this.emitter.minParticleScale = 1;
   this.emitter.maxParticleScale = 1.2;
-  this.emitter.setAll('body.allowGravity', true);
 };
 
 Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
@@ -110,21 +107,21 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   ]);
 
   var moving_horizontally = true;
-  player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite / 2;
+  player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
   //HORIZONTAL MOVEMENT
   if (player.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
   {
     player.game.physics.arcade.gravity.y = 0;
     player.scale.x = Math.abs(player.scale.x); //face sprite right
-    player.body.velocity.x = movement_speed;
+    player.body.velocity.x = this.game.global.hero_movement_speed;
     player.angle = 15;
   }
   else if (player.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
   {
     player.game.physics.arcade.gravity.y = 0;
     player.scale.x = -1 * Math.abs(player.scale.x);//face sprite left
-    player.body.velocity.x = -movement_speed;
+    player.body.velocity.x = -this.game.global.hero_movement_speed;
     player.angle = -15;
   }else{
     moving_horizontally = false
@@ -134,7 +131,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   if (player.game.input.keyboard.isDown(Phaser.Keyboard.UP))
   {
     player.game.physics.arcade.gravity.y = 0;
-    player.body.velocity.y = -movement_speed;
+    player.body.velocity.y = -this.game.global.hero_movement_speed;
     if(player.scale.x > 0){ //sprite is facing right
       player.angle = -15;
     }else{//sprite is facing left
@@ -143,7 +140,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   }
   else if (player.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
   {
-    player.body.velocity.y = movement_speed;
+    player.body.velocity.y = this.game.global.hero_movement_speed;
     if(player.scale.x > 0){ //sprite is facing right
       player.angle = 15;
     }else{//sprite is facing left
@@ -154,7 +151,7 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   else if(!moving_horizontally)
   {
     player.game.physics.arcade.gravity.y = 90;
-    player.animations.getAnimation('idling').delay = animation_flap_delay_for_8_img_sprite;
+    player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
     player.angle = 0;
   }
 
@@ -167,7 +164,6 @@ module.exports = Protagonist;
 'use strict';
 
 var num_enemy_spritesheets = 25;
-var animation_flap_delay_for_8_img_sprite = 10;
 //spritesheets of things other than a flapping/idling animation
 var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
 
@@ -221,7 +217,7 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
     //start sprite a little bit outside the game on the left side
     this.position.x  = - this.width*.5;
 
-    this.body.velocity.x = 100;
+    this.body.velocity.x = this.game.global.hero_movement_speed * .9;
     this.scale.x = Math.abs(this.scale.x); //face sprite right
 
   }
@@ -229,7 +225,7 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
     //start sprite a little bit outside the game on the right side
     this.position.x  = this.game.world.width + this.width*.5;
 
-    this.body.velocity.x = -100;
+    this.body.velocity.x = -this.game.global.hero_movement_speed * .9;
     this.scale.x = -1 * Math.abs(this.scale.x); //face sprite left
   }
 }
@@ -246,12 +242,10 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   this.loadTexture('b-'+randImgId,0,true);
 
   //play an idling/flapping animation
-  var idlingAnimArray = getIdlingAnimationArray(randImgId);
-  var animDelay = animation_flap_delay_for_8_img_sprite * (idlingAnimArray.length / 8.0);   //depending on how many images are in the idling animation, adjust the delay such that everyone flaps at the same speed
-  this.animations.add('idling', idlingAnimArray, animDelay, true);
+  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true); 
   this.animations.play('idling');
 }
-
+/*
 //spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
 function getIdlingAnimationArray(spritesheet_index){
   switch(spritesheet_index){
@@ -286,7 +280,7 @@ function getIdlingAnimationArray(spritesheet_index){
       return [0,1,2,3];
   }
 }
-
+*/
 module.exports = Sideways_enemy;
 
 },{}],4:[function(require,module,exports){
@@ -305,9 +299,11 @@ Boot.prototype = {
     this.game.global = {
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
-      }
+      },
+      fps_of_flapping_sprites: 7, //frames per second for a sprite with only 4 images
+      hero_movement_speed: 120
     };
-    
+
   },
   create: function() {
     this.game.input.maxPointers = 1;

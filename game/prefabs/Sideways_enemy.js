@@ -1,7 +1,6 @@
 'use strict';
 
 var num_enemy_spritesheets = 25;
-var animation_flap_delay_for_8_img_sprite = 10;
 //spritesheets of things other than a flapping/idling animation
 var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
 
@@ -55,7 +54,7 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
     //start sprite a little bit outside the game on the left side
     this.position.x  = - this.width*.5;
 
-    this.body.velocity.x = 100;
+    this.body.velocity.x = this.game.global.hero_movement_speed * .9;
     this.scale.x = Math.abs(this.scale.x); //face sprite right
 
   }
@@ -63,7 +62,7 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
     //start sprite a little bit outside the game on the right side
     this.position.x  = this.game.world.width + this.width*.5;
 
-    this.body.velocity.x = -100;
+    this.body.velocity.x = -this.game.global.hero_movement_speed * .9;
     this.scale.x = -1 * Math.abs(this.scale.x); //face sprite left
   }
 }
@@ -80,12 +79,10 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   this.loadTexture('b-'+randImgId,0,true);
 
   //play an idling/flapping animation
-  var idlingAnimArray = getIdlingAnimationArray(randImgId);
-  var animDelay = animation_flap_delay_for_8_img_sprite * (idlingAnimArray.length / 8.0);   //depending on how many images are in the idling animation, adjust the delay such that everyone flaps at the same speed
-  this.animations.add('idling', idlingAnimArray, animDelay, true);
+  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true); 
   this.animations.play('idling');
 }
-
+/*
 //spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
 function getIdlingAnimationArray(spritesheet_index){
   switch(spritesheet_index){
@@ -120,5 +117,5 @@ function getIdlingAnimationArray(spritesheet_index){
       return [0,1,2,3];
   }
 }
-
+*/
 module.exports = Sideways_enemy;
