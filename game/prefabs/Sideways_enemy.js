@@ -28,62 +28,62 @@ Sideways_enemy.prototype.update = function() {
 Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
   this.reset(0,0);//This moves the Game Object to the given x/y world coordinates and sets fresh, exists, visible and renderable to true.
 
-  chooseRandomSpriteSheet(this);
-  setSpriteSize(hero,this);
-  determineSpriteBehavior(this);
+  this.chooseRandomSpriteSheet();
+  this.setSpriteSize(hero);
+  this.determineSpriteBehavior();
 };
 
-function setSpriteSize(hero,enemy_sprite){
-  var aspect_ratio = Math.abs(enemy_sprite.width / enemy_sprite.height);
+Sideways_enemy.prototype.setSpriteSize = function(hero){
+  var aspect_ratio = Math.abs(this.width / this.height);
 
   var hero_area = Math.abs(hero.height * hero.width);
   var my_area = hero_area * (Math.random() * 3.5 + 0.5) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
 
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
 
-  enemy_sprite.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
-  enemy_sprite.height = new_width * (1 / aspect_ratio);
+  this.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
+  this.height = new_width * (1 / aspect_ratio);
 }
 
-function determineSpriteBehavior(sprite){
+Sideways_enemy.prototype.determineSpriteBehavior = function(){
   //randomly place sprite's y position such that it will be 100% on screen
-  sprite.position.y = (sprite.game.world.height - sprite.height) * Math.random() + sprite.height/2;
-  sprite.body.velocity.y = 0;
-  sprite.body.allowGravity = false;
+  this.position.y = (this.game.world.height - this.height) * Math.random() + this.height/2;
+  this.body.velocity.y = 0;
+  this.body.allowGravity = false;
 
   if(Math.random() < 0.5){ //moves from left to right
     //start sprite a little bit outside the game on the left side
-    sprite.position.x  = - sprite.width*.5;
+    this.position.x  = - this.width*.5;
 
-    sprite.body.velocity.x = 100;
-    sprite.scale.x = Math.abs(sprite.scale.x); //face sprite right
+    this.body.velocity.x = 100;
+    this.scale.x = Math.abs(this.scale.x); //face sprite right
 
   }
   else{ //moves from right to left
     //start sprite a little bit outside the game on the right side
-    sprite.position.x  = sprite.game.world.width + sprite.width*.5;
+    this.position.x  = this.game.world.width + this.width*.5;
 
-    sprite.body.velocity.x = -100;
-    sprite.scale.x = -1 * Math.abs(sprite.scale.x); //face sprite left
+    this.body.velocity.x = -100;
+    this.scale.x = -1 * Math.abs(this.scale.x); //face sprite left
   }
 }
 
-function chooseRandomSpriteSheet(sprite){
+Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   //bird spritesheets are numbered 0-25, choose one at random
-  var randImgId = getRandomInt(1, 35);
+  var randImgId = this.game.global.getRandomInt(1, 35);
 
   while(forbidden_img_ids_for_flapping.indexOf(randImgId) > -1 ){
-    randImgId = getRandomInt(1, 35);
+    randImgId = this.game.global.getRandomInt(1, 35);
   }
 
   //load sprite picture by concatenating the prefix 'b-' with the random sprite number.
-  sprite.loadTexture('b-'+randImgId,0,true);
+  this.loadTexture('b-'+randImgId,0,true);
 
   //play an idling/flapping animation
   var idlingAnimArray = getIdlingAnimationArray(randImgId);
   var animDelay = animation_flap_delay_for_8_img_sprite * (idlingAnimArray.length / 8.0);   //depending on how many images are in the idling animation, adjust the delay such that everyone flaps at the same speed
-  sprite.animations.add('idling', idlingAnimArray, animDelay, true);
-  sprite.animations.play('idling');
+  this.animations.add('idling', idlingAnimArray, animDelay, true);
+  this.animations.play('idling');
 }
 
 //spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
@@ -119,11 +119,6 @@ function getIdlingAnimationArray(spritesheet_index){
     default:
       return [0,1,2,3];
   }
-}
-
-// Returns a uniformly distributed random integer between min (included) and max (excluded)
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
 }
 
 module.exports = Sideways_enemy;

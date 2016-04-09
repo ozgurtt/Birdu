@@ -26,8 +26,15 @@ var Protagonist = function(game, x, y, frame) {
   //start at center of screen
   this.position.setTo(game.world.centerX,game.world.centerY);
 
-  //custom properties
-  this.alive = false;
+  //add an emitter to show little meat crumbs when this hero eats something
+  this.emitter = this.game.add.emitter(0,0, 5);
+  this.emitter.makeParticles('meat');
+  this.emitter.setRotation(-100, 100);
+  this.emitter.setXSpeed(-200,200);
+  this.emitter.setYSpeed(-200,0);
+  this.emitter.minParticleScale = 1;
+  this.emitter.maxParticleScale = 1.2;
+  this.emitter.setAll('body.allowGravity', true);
 };
 
 Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
@@ -36,7 +43,22 @@ Protagonist.prototype.constructor = Protagonist;
 Protagonist.prototype.update = function() {
   this.handlePlayerMovement(this);
 
+  //emitter particles fade out over time
+  this.emitter.forEachAlive(function(p){
+		p.alpha = p.lifespan / this.lifespan;
+  },this.emitter);
+
+
 };
+
+Protagonist.prototype.showCrumbs = function(){
+  this.emitter.width = this.width;
+  this.emitter.height = this.height;
+  this.emitter.y = this.y;
+  this.emitter.x = this.x;
+
+  this.emitter.start(true, 1000, 100, this.game.global.getRandomInt(3,5) ); //particles emit at 100 ms, live for 100ms, 2 at a time
+}
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
 Protagonist.prototype.sizeIncrease = function(enemy_area){

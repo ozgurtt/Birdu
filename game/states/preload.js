@@ -51,9 +51,8 @@ Preload.prototype = {
     this.load.spritesheet('b-8', 'assets/birds/b-8.png', 123.00000000000000000000, 107);
     this.load.spritesheet('b-9', 'assets/birds/b-9.png', 120.00000000000000000000, 94);
 
-
-
     //load static images
+    this.load.image('meat', 'assets/meat.png');
     this.load.image('background', 'assets/background.png');
 
     //load sounds
