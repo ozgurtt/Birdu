@@ -3,7 +3,7 @@
 var movement_speed = 105;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60
-var base_hero_x_length_increase = .5;
+var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
@@ -53,10 +53,8 @@ Protagonist.prototype.sizeIncrease = function(enemy_area){
 },
 
 Protagonist.prototype.setSizeFromWidth = function(new_width){
-  var hero_aspect_ratio = Math.abs(this.width / this.height);
-
-  this.width = new_width;
-  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
+  this.width = new_width; //width is set by setting the 'x' scale under Phaser's hood
+  this.scale.y = Math.abs(this.scale.x); // set the y scale to the same amount
 },
 
 Protagonist.prototype.handlePlayerMovement = function(player){

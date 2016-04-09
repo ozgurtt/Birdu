@@ -83,10 +83,13 @@
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        var scoreIncrease = hero.sizeIncrease(enemy_area) * (Math.random() * .5 + .75) * 100;
-        scoreIncrease = Math.round(scoreIncrease);
+        this.hero.sizeIncrease(enemy_area);
 
-        this.createScoreAnimation(this.hero.x,this.hero.y,scoreIncrease);
+        this.eatingTween = this.add.tween(this.hero.scale).to({ x: this.hero.scale.x * 1.2, y: this.hero.scale.y * 1.2},75,
+          Phaser.Easing.Linear.In).to({ x: this.hero.scale.x, y: this.hero.scale.y}, 75, Phaser.Easing.Linear.In);
+        this.eatingTween.start();
+
+        this.createScoreAnimation(this.hero.x,this.hero.y,Math.round(Math.sqrt(enemy_area)));
 
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;

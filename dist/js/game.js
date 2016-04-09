@@ -21,7 +21,7 @@ window.onload = function () {
 var movement_speed = 105;
 var drag_value = 75;
 var animation_flap_delay_for_8_img_sprite = 60
-var base_hero_x_length_increase = .5;
+var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
@@ -71,10 +71,8 @@ Protagonist.prototype.sizeIncrease = function(enemy_area){
 },
 
 Protagonist.prototype.setSizeFromWidth = function(new_width){
-  var hero_aspect_ratio = Math.abs(this.width / this.height);
-
-  this.width = new_width;
-  this.height = Math.abs(this.width * (1 / hero_aspect_ratio) );
+  this.width = new_width; //width is set by setting the 'x' scale under Phaser's hood
+  this.scale.y = Math.abs(this.scale.x); // set the y scale to the same amount
 },
 
 Protagonist.prototype.handlePlayerMovement = function(player){
@@ -439,10 +437,13 @@ module.exports = Menu;
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        var scoreIncrease = hero.sizeIncrease(enemy_area) * (Math.random() * .5 + .75) * 100;
-        scoreIncrease = Math.round(scoreIncrease);
+        this.hero.sizeIncrease(enemy_area);
 
-        this.createScoreAnimation(this.hero.x,this.hero.y,scoreIncrease);
+        this.eatingTween = this.add.tween(this.hero.scale).to({ x: this.hero.scale.x * 1.2, y: this.hero.scale.y * 1.2},75,
+          Phaser.Easing.Linear.In).to({ x: this.hero.scale.x, y: this.hero.scale.y}, 75, Phaser.Easing.Linear.In);
+        this.eatingTween.start();
+
+        this.createScoreAnimation(this.hero.x,this.hero.y,Math.round(Math.sqrt(enemy_area)));
 
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
