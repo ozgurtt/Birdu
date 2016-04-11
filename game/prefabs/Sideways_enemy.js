@@ -33,41 +33,41 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 Sideways_enemy.prototype.setSpriteSize = function(hero){
-  var hero_area = Math.abs(hero.height * hero.width);
-  var my_area;
+  var hero_area = this.game.global.area(hero);
 
+  //how big enemy sprites can get depends on the hero's current size, and the game's level
+  var my_area = hero_area;
   switch(this.game.global.level){
     case 0:
-      my_area = hero_area * (Math.random() * 3.5 + 0.5) ;
+      my_area *= (Math.random() * 2 + 0.5);
       break;
     case 1:
+      my_area *= (Math.random() * 2.5 + .6);
       break;
     case 2:
+      my_area *= (Math.random() * 3 + 0.7);
       break;
     case 3:
+      my_area *= (Math.random() * 3.5 + 0.85);
       break;
     case 4:
+      my_area *= (Math.random() * 3.5 + 0.9);
       break;
     case 5:
-      break;
-    case 6:
-      break;
-    case 7:
-      break;
-    case 8:
-      break;
-    case 9:
-      break;
-    case 10:
+      my_area *= (Math.random() * 4 + 0.93);
       break;
     default:
+      my_area *= (Math.random() * 4 + 0.945);
+      break;
   }
+
+  my_area = Math.floor(my_area,this.game.width / 10);
 
   var aspect_ratio = Math.abs(this.width / this.height);
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
 
-  this.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
-  this.height = Math.abs(this.scale.x);
+  this.width = new_width;
+  this.scale.y = Math.abs(this.scale.x);
 }
 
 Sideways_enemy.prototype.determineSpriteBehavior = function(){

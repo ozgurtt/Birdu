@@ -57,6 +57,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('bite', 'assets/audio/bite.wav');
+    this.load.audio('shrink', 'assets/audio/shrink.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {

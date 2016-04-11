@@ -1,16 +1,17 @@
 'use strict';
 
 var drag_value = 75;
-var base_hero_x_length_increase = 1;
+var base_hero_x_length_increase = 5;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
   this.game.global.hero_sprite_number = 28;
 
   this.anchor.setTo(0.5, 0.5);
-  this.setSizeFromWidth(50);
+  this.scale.x = this.game.global.original_hero_scale;
+  this.scale.y = this.game.global.original_hero_scale;
 
-  // add animations specific for this sprite, and and play them
+  // add animations + tweens specific for this sprite, and and play them if needed
   this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
   this.animations.play('idling');
 
@@ -60,16 +61,13 @@ Protagonist.prototype.showCrumbs = function(){
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
 Protagonist.prototype.sizeIncrease = function(enemy_area){
-  var hero_area = Math.abs(this.height * this.width);
+  var hero_area = this.game.global.area(this);
 
   var area_ratio = enemy_area / hero_area;
-  var width_increase_size = base_hero_x_length_increase * (1 + area_ratio);
+  var width_increase_size = base_hero_x_length_increase *  area_ratio;
 
   width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
-
   this.setSizeFromWidth(this.width + width_increase_size);
-
-  return Math.abs(width_increase_size);
 },
 
 Protagonist.prototype.setSizeFromWidth = function(new_width){

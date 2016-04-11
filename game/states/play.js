@@ -76,22 +76,29 @@
 
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
-      var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values
-      var enemy_area = Math.abs(enemy.height * enemy.width);
+      var hero_area = this.game.global.area(this.hero);
+      var enemy_area = this.game.global.area(enemy);
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
+        //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
-
         this.eatingTween = this.add.tween(this.hero.scale).to({ x: this.hero.scale.x * 1.2, y: this.hero.scale.y * 1.2},75,
           Phaser.Easing.Linear.In).to({ x: this.hero.scale.x, y: this.hero.scale.y}, 75, Phaser.Easing.Linear.In);
         this.eatingTween.start();
 
+        //show this meal's score travel up towards total score
         this.createScoreAnimation(this.hero.x,this.hero.y,Math.round(Math.sqrt(enemy_area)));
 
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
+
+        console.log(this.game.global.area(this.hero));
+        //check for a level increase
+        if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
+          this.game.global.levelUp(this.game,this.hero,this.enemies);
+        }
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);

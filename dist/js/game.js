@@ -19,16 +19,17 @@ window.onload = function () {
 'use strict';
 
 var drag_value = 75;
-var base_hero_x_length_increase = 1;
+var base_hero_x_length_increase = 5;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
   this.game.global.hero_sprite_number = 28;
 
   this.anchor.setTo(0.5, 0.5);
-  this.setSizeFromWidth(50);
+  this.scale.x = this.game.global.original_hero_scale;
+  this.scale.y = this.game.global.original_hero_scale;
 
-  // add animations specific for this sprite, and and play them
+  // add animations + tweens specific for this sprite, and and play them if needed
   this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
   this.animations.play('idling');
 
@@ -78,16 +79,13 @@ Protagonist.prototype.showCrumbs = function(){
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
 Protagonist.prototype.sizeIncrease = function(enemy_area){
-  var hero_area = Math.abs(this.height * this.width);
+  var hero_area = this.game.global.area(this);
 
   var area_ratio = enemy_area / hero_area;
-  var width_increase_size = base_hero_x_length_increase * (1 + area_ratio);
+  var width_increase_size = base_hero_x_length_increase *  area_ratio;
 
   width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
-
   this.setSizeFromWidth(this.width + width_increase_size);
-
-  return Math.abs(width_increase_size);
 },
 
 Protagonist.prototype.setSizeFromWidth = function(new_width){
@@ -197,15 +195,41 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 Sideways_enemy.prototype.setSpriteSize = function(hero){
+  var hero_area = this.game.global.area(hero);
+
+  //how big enemy sprites can get depends on the hero's current size, and the game's level
+  var my_area = hero_area;
+  switch(this.game.global.level){
+    case 0:
+      my_area *= (Math.random() * 2 + 0.5);
+      break;
+    case 1:
+      my_area *= (Math.random() * 2.5 + .6);
+      break;
+    case 2:
+      my_area *= (Math.random() * 3 + 0.7);
+      break;
+    case 3:
+      my_area *= (Math.random() * 3.5 + 0.85);
+      break;
+    case 4:
+      my_area *= (Math.random() * 3.5 + 0.9);
+      break;
+    case 5:
+      my_area *= (Math.random() * 4 + 0.93);
+      break;
+    default:
+      my_area *= (Math.random() * 4 + 0.945);
+      break;
+  }
+
+  my_area = Math.floor(my_area,this.game.width / 10);
+
   var aspect_ratio = Math.abs(this.width / this.height);
-
-  var hero_area = Math.abs(hero.height * hero.width);
-  var my_area = hero_area * (Math.random() * 3.5 + 0.5) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
-
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
 
-  this.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
-  this.height = new_width * (1 / aspect_ratio);
+  this.width = new_width;
+  this.scale.y = Math.abs(this.scale.x);
 }
 
 Sideways_enemy.prototype.determineSpriteBehavior = function(){
@@ -267,9 +291,30 @@ Boot.prototype = {
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
       },
+      levelUp: function(game,hero,enemies){
+        this.level ++;
+
+        var good_job_audio = game.add.audio('shrink');
+        good_job_audio.play();
+
+        //update all enemy speeds as they move across the screen
+        enemies.forEach(function(enemy){
+          enemy.body.velocity.x += 5 * Math.sign(enemy.body.velocity.x);
+        });
+
+        //update hero's size, sprite, speed, etc as necessary
+        var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
+        shrinkToOriginalSize.start();
+      },
+      area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
+        return Math.abs(sprite.width * sprite.height);
+      },
       fps_of_flapping_sprites: 9, //frames per second for a sprite with only 4 images
       hero_movement_speed: 120,
-      hero_sprite_number: 0
+      hero_sprite_number: 0,
+      level: 0,
+      level_up_hero_area: 9500,
+      original_hero_scale: .3
     };
 
   },
@@ -467,22 +512,29 @@ module.exports = Menu;
 
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
-      var hero_area = Math.abs(this.hero.height * this.hero.width);//must use Math.abs, as 'x' scales can be different, causing negative area values
-      var enemy_area = Math.abs(enemy.height * enemy.width);
+      var hero_area = this.game.global.area(this.hero);
+      var enemy_area = this.game.global.area(enemy);
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
+        //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
-
         this.eatingTween = this.add.tween(this.hero.scale).to({ x: this.hero.scale.x * 1.2, y: this.hero.scale.y * 1.2},75,
           Phaser.Easing.Linear.In).to({ x: this.hero.scale.x, y: this.hero.scale.y}, 75, Phaser.Easing.Linear.In);
         this.eatingTween.start();
 
+        //show this meal's score travel up towards total score
         this.createScoreAnimation(this.hero.x,this.hero.y,Math.round(Math.sqrt(enemy_area)));
 
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
+
+        console.log(this.game.global.area(this.hero));
+        //check for a level increase
+        if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
+          this.game.global.levelUp(this.game,this.hero,this.enemies);
+        }
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
@@ -564,6 +616,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('bite', 'assets/audio/bite.wav');
+    this.load.audio('shrink', 'assets/audio/shrink.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {
