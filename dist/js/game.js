@@ -18,7 +18,8 @@ window.onload = function () {
 },{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
 'use strict';
 
-var drag_value = 75;
+var drag_value = 70;
+var grav_value = drag_value + 30;
 var base_hero_x_length_increase = 5;
 
 var Protagonist = function(game, x, y, frame) {
@@ -33,10 +34,10 @@ var Protagonist = function(game, x, y, frame) {
   this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
   this.animations.play('idling');
 
-  // Bird PHYSICS. We want him to emulate the sky. So he will have to glide a bit before stopping, and will have gravity (check player movement method)
+  // Bird PHYSICS. We want him to emulate the sky. So he will have to glide a bit before stopping, and will have gravity
   this.game.physics.arcade.enableBody(this);
   this.body.allowGravity = true;
-  this.game.physics.arcade.gravity.y = 0;
+  this.body.gravity.y = grav_value;
   this.body.collideWorldBounds = true;
   this.body.bounce.set(0.4);
   this.body.drag.setTo(drag_value,drag_value) ;
@@ -58,7 +59,7 @@ Protagonist.prototype = Object.create(Phaser.Sprite.prototype);
 Protagonist.prototype.constructor = Protagonist;
 
 Protagonist.prototype.update = function() {
-  this.handlePlayerMovement(this);
+  this.handlePlayerMovement();
 
   //emitter particles fade out over time
   this.emitter.forEachAlive(function(p){
@@ -93,12 +94,12 @@ Protagonist.prototype.setSizeFromWidth = function(new_width){
   this.scale.y = Math.abs(this.scale.x); // set the y scale to the same amount
 },
 
-Protagonist.prototype.handlePlayerMovement = function(player){
+Protagonist.prototype.handlePlayerMovement = function(){
 
   // Prevent directions and space key events bubbling up to browser,
   // since these keys will make web page scroll which is not
   // expected.
-  player.game.input.keyboard.addKeyCapture([
+  this.game.input.keyboard.addKeyCapture([
       Phaser.Keyboard.LEFT,
       Phaser.Keyboard.RIGHT,
       Phaser.Keyboard.UP,
@@ -106,54 +107,60 @@ Protagonist.prototype.handlePlayerMovement = function(player){
   ]);
 
   var moving_horizontally = true;
-  player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
+  this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
-  //HORIZONTAL MOVEMENT
-  if (player.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
-  {
-    player.game.physics.arcade.gravity.y = 0;
-    player.scale.x = Math.abs(player.scale.x); //face sprite right
-    player.body.velocity.x = this.game.global.hero_movement_speed;
-    player.angle = 15;
-  }
-  else if (player.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
-  {
-    player.game.physics.arcade.gravity.y = 0;
-    player.scale.x = -1 * Math.abs(player.scale.x);//face sprite left
-    player.body.velocity.x = -this.game.global.hero_movement_speed;
-    player.angle = -15;
-  }else{
-    moving_horizontally = false
-  }
 
-  //VERTICAL MOVEMENT (put it after horizontal check, so that the direction the bird is looking will consider vertical movement more important than horizontal)
-  if (player.game.input.keyboard.isDown(Phaser.Keyboard.UP))
-  {
-    player.game.physics.arcade.gravity.y = 0;
-    player.body.velocity.y = -this.game.global.hero_movement_speed;
-    if(player.scale.x > 0){ //sprite is facing right
-      player.angle = -15;
-    }else{//sprite is facing left
-      player.angle = 15;
+  //movement using mouse or mobile phone
+  if(this.game.input.activePointer.isDown) {
+    this.game.physics.arcade.moveToPointer(this,this.game.global.hero_movement_speed);
+  }
+  else{
+    this.body.gravity.y = grav_value;
+    //HORIZONTAL MOVEMENT USING KEYBOARD
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
+    {
+      this.body.gravity.y = 0;
+      this.scale.x = Math.abs(this.scale.x); //face sprite right
+      this.body.velocity.x = this.game.global.hero_movement_speed;
+      this.angle = 15;
+    }
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
+    {
+      this.body.gravity.y = 0;
+      this.scale.x = -1 * Math.abs(this.scale.x);//face sprite left
+      this.body.velocity.x = -this.game.global.hero_movement_speed;
+      this.angle = -15;
+    }else{
+      moving_horizontally = false
+    }
+
+    //VERTICAL MOVEMENT USING KEYBOARD
+    //put it after horizontal check, so that the direction the bird is looking will consider vertical movement more important than horizontal
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
+    {
+      this.body.velocity.y = -this.game.global.hero_movement_speed;
+      if(this.scale.x > 0){ //sprite is facing right
+        this.angle = -15;
+      }else{//sprite is facing left
+        this.angle = 15;
+      }
+    }
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
+    {
+      this.body.velocity.y = this.game.global.hero_movement_speed;
+      if(this.scale.x > 0){ //sprite is facing right
+        this.angle = 15;
+      }else{//sprite is facing left
+        this.angle = -15;
+      }
+    }
+    //NO MOVEMENT
+    else if(!moving_horizontally)
+    {
+      this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
+      this.angle = 0;
     }
   }
-  else if (player.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
-  {
-    player.body.velocity.y = this.game.global.hero_movement_speed;
-    if(player.scale.x > 0){ //sprite is facing right
-      player.angle = 15;
-    }else{//sprite is facing left
-      player.angle = -15;
-    }
-  }
-  //NO MOVEMENT
-  else if(!moving_horizontally)
-  {
-    player.game.physics.arcade.gravity.y = 90;
-    player.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
-    player.angle = 0;
-  }
-
 }
 
 
