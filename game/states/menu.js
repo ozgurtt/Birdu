@@ -24,7 +24,6 @@ Menu.prototype = {
     //title of game text
     this.titleText = this.game.add.text(this.game.world.centerX, 300, 'Birdu', style);
     this.titleText.anchor.setTo(0.5, 0.5);
-    this
 
     style.font = '18px Arial';
 
@@ -38,6 +37,10 @@ Menu.prototype = {
     //tell user how to play (text)
     this.instructionsText = this.game.add.text(this.game.world.centerX, this.titleText.y + 100, 'Eat smaller birds to survive. Click to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
+
+    //start game's music
+    this.background_music = this.game.add.audio('background-music');
+    this.background_music.loopFull(0.5);
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {

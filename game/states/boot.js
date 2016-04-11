@@ -14,8 +14,10 @@ Boot.prototype = {
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
       },
-      fps_of_flapping_sprites: 7, //frames per second for a sprite with only 4 images
-      hero_movement_speed: 120
+      fps_of_flapping_sprites: 9, //frames per second for a sprite with only 4 images
+      hero_movement_speed: 120,
+      hero_sprite_number: 0,
+      level: 0
     };
 
   },

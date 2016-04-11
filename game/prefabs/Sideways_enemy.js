@@ -2,7 +2,7 @@
 
 var num_enemy_spritesheets = 25;
 //spritesheets of things other than a flapping/idling animation
-var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
+var non_flapping_sprite_img_ids = [8,14,16,20,22,23,26,29,25,31,36];
 
 var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
@@ -33,15 +33,41 @@ Sideways_enemy.prototype.createNewEnemyBehaviors = function(hero) {
 };
 
 Sideways_enemy.prototype.setSpriteSize = function(hero){
-  var aspect_ratio = Math.abs(this.width / this.height);
-
   var hero_area = Math.abs(hero.height * hero.width);
-  var my_area = hero_area * (Math.random() * 3.5 + 0.5) ; //area of this enemy sprite is 0.1 thru 3 times hero's current area
+  var my_area;
 
+  switch(this.game.global.level){
+    case 0:
+      my_area = hero_area * (Math.random() * 3.5 + 0.5) ;
+      break;
+    case 1:
+      break;
+    case 2:
+      break;
+    case 3:
+      break;
+    case 4:
+      break;
+    case 5:
+      break;
+    case 6:
+      break;
+    case 7:
+      break;
+    case 8:
+      break;
+    case 9:
+      break;
+    case 10:
+      break;
+    default:
+  }
+
+  var aspect_ratio = Math.abs(this.width / this.height);
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
 
   this.width = new_width; //forces sprite to be a perfect square, even tho not all sprites are (not good!)
-  this.height = new_width * (1 / aspect_ratio);
+  this.height = Math.abs(this.scale.x);
 }
 
 Sideways_enemy.prototype.determineSpriteBehavior = function(){
@@ -71,7 +97,8 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = this.game.global.getRandomInt(1, 35);
 
-  while(forbidden_img_ids_for_flapping.indexOf(randImgId) > -1 ){
+  while(randImgId != this.game.global.hero_sprite_number &&
+    non_flapping_sprite_img_ids.indexOf(randImgId) > -1 ){
     randImgId = this.game.global.getRandomInt(1, 35);
   }
 
@@ -79,43 +106,8 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   this.loadTexture('b-'+randImgId,0,true);
 
   //play an idling/flapping animation
-  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true); 
+  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true);
   this.animations.play('idling');
 }
-/*
-//spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
-function getIdlingAnimationArray(spritesheet_index){
-  switch(spritesheet_index){
-    case 5:
-    case 10:
-    case 15:
-    case 18:
-    case 30:
-    case 32:
-    case 33:
-      return [0,1,2,3,4,5,6,7];
-    case 24:
-      return [0,1,2,3,4,5,6];
-    case 8:
-    case 13:
-    case 14:
-    case 16:
-    case 17:
-    case 19:
-    case 20:
-    case 22:
-    case 25:
-    case 26:
-    case 27:
-    case 29:
-    case 31:
-    case 34:
-    case 35:
-    case 36:
-      return [0,1];
-    default:
-      return [0,1,2,3];
-  }
-}
-*/
+
 module.exports = Sideways_enemy;

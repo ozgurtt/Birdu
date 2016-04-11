@@ -56,7 +56,7 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //load sounds
-    this.load.audio('gulp', 'assets/audio/gulp.wav');
+    this.load.audio('bite', 'assets/audio/bite.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {

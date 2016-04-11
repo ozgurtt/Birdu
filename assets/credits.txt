@@ -6,5 +6,7 @@ preloader.gif from phaser-official (yeoman) github project
 
 Audio:
 
-Gulp sound :: https://www.freesound.org/people/brookmorgan/sounds/189566/
+Bite sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
 The Plucked Bird :: http://opengameart.org/content/the-plucked-bird-nes-version
+
+Chicken body/meat :: http://opengameart.org/content/shadowless-lpc-food

@@ -5,6 +5,7 @@ var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
+  this.game.global.hero_sprite_number = 28;
 
   this.anchor.setTo(0.5, 0.5);
   this.setSizeFromWidth(50);
@@ -25,7 +26,7 @@ var Protagonist = function(game, x, y, frame) {
   this.position.setTo(game.world.centerX,game.world.centerY);
 
   //add an emitter to show little meat crumbs when this hero eats something
-  this.emitter = this.game.add.emitter(0,0, 5);
+  this.emitter = this.game.add.emitter(0,0, 10);
   this.emitter.makeParticles('meat');
   this.emitter.setRotation(-100, 100);
   this.emitter.setXSpeed(-200,200);
@@ -54,7 +55,7 @@ Protagonist.prototype.showCrumbs = function(){
   this.emitter.y = this.y;
   this.emitter.x = this.x;
 
-  this.emitter.start(true, 1000, 100, this.game.global.getRandomInt(3,5) ); //particles emit at 100 ms, live for 100ms, 2 at a time
+  this.emitter.start(true, 1000, 100, this.game.global.getRandomInt(4,6) ); //particles emit at 100 ms, live for 100ms, 2 at a time
 }
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area

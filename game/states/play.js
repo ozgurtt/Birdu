@@ -26,9 +26,7 @@
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eating_sound = this.game.add.audio('gulp');
-      this.background_music = this.game.add.audio('background-music');
-      this.background_music.loopFull(0.6);
+      this.eating_sound = this.game.add.audio('bite');
 
       //Create the score label
       this.createScore();
@@ -96,7 +94,6 @@
         enemy.exists = false;
       }
       else{
-        this.background_music.stop();
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
       }
     },

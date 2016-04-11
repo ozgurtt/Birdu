@@ -23,6 +23,7 @@ var base_hero_x_length_increase = 1;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
+  this.game.global.hero_sprite_number = 28;
 
   this.anchor.setTo(0.5, 0.5);
   this.setSizeFromWidth(50);
@@ -43,7 +44,7 @@ var Protagonist = function(game, x, y, frame) {
   this.position.setTo(game.world.centerX,game.world.centerY);
 
   //add an emitter to show little meat crumbs when this hero eats something
-  this.emitter = this.game.add.emitter(0,0, 5);
+  this.emitter = this.game.add.emitter(0,0, 10);
   this.emitter.makeParticles('meat');
   this.emitter.setRotation(-100, 100);
   this.emitter.setXSpeed(-200,200);
@@ -72,7 +73,7 @@ Protagonist.prototype.showCrumbs = function(){
   this.emitter.y = this.y;
   this.emitter.x = this.x;
 
-  this.emitter.start(true, 1000, 100, this.game.global.getRandomInt(3,5) ); //particles emit at 100 ms, live for 100ms, 2 at a time
+  this.emitter.start(true, 1000, 100, this.game.global.getRandomInt(4,6) ); //particles emit at 100 ms, live for 100ms, 2 at a time
 }
 
 //when hero collides with an enemy that has a smaller area than him, must increase hero's size by an amount proportional to that area
@@ -165,7 +166,7 @@ module.exports = Protagonist;
 
 var num_enemy_spritesheets = 25;
 //spritesheets of things other than a flapping/idling animation
-var forbidden_img_ids_for_flapping = [8,14,16,20,22,23,26,29,25,31,36];
+var non_flapping_sprite_img_ids = [8,14,16,20,22,23,26,29,25,31,36];
 
 var Sideways_enemy = function(game,hero) {
   Phaser.Sprite.call(this, game);
@@ -234,7 +235,8 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = this.game.global.getRandomInt(1, 35);
 
-  while(forbidden_img_ids_for_flapping.indexOf(randImgId) > -1 ){
+  while(randImgId != this.game.global.hero_sprite_number &&
+    non_flapping_sprite_img_ids.indexOf(randImgId) > -1 ){
     randImgId = this.game.global.getRandomInt(1, 35);
   }
 
@@ -242,45 +244,10 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   this.loadTexture('b-'+randImgId,0,true);
 
   //play an idling/flapping animation
-  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true); 
+  this.animations.add('idling', null,this.game.global.fps_of_flapping_sprites,true);
   this.animations.play('idling');
 }
-/*
-//spritesheets have 2, 4, or 8 images in their idling (flapping) animations. Here is that info hard coded
-function getIdlingAnimationArray(spritesheet_index){
-  switch(spritesheet_index){
-    case 5:
-    case 10:
-    case 15:
-    case 18:
-    case 30:
-    case 32:
-    case 33:
-      return [0,1,2,3,4,5,6,7];
-    case 24:
-      return [0,1,2,3,4,5,6];
-    case 8:
-    case 13:
-    case 14:
-    case 16:
-    case 17:
-    case 19:
-    case 20:
-    case 22:
-    case 25:
-    case 26:
-    case 27:
-    case 29:
-    case 31:
-    case 34:
-    case 35:
-    case 36:
-      return [0,1];
-    default:
-      return [0,1,2,3];
-  }
-}
-*/
+
 module.exports = Sideways_enemy;
 
 },{}],4:[function(require,module,exports){
@@ -300,8 +267,9 @@ Boot.prototype = {
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
       },
-      fps_of_flapping_sprites: 7, //frames per second for a sprite with only 4 images
-      hero_movement_speed: 120
+      fps_of_flapping_sprites: 9, //frames per second for a sprite with only 4 images
+      hero_movement_speed: 120,
+      hero_sprite_number: 0
     };
 
   },
@@ -393,7 +361,6 @@ Menu.prototype = {
     //title of game text
     this.titleText = this.game.add.text(this.game.world.centerX, 300, 'Birdu', style);
     this.titleText.anchor.setTo(0.5, 0.5);
-    this
 
     style.font = '18px Arial';
 
@@ -407,6 +374,10 @@ Menu.prototype = {
     //tell user how to play (text)
     this.instructionsText = this.game.add.text(this.game.world.centerX, this.titleText.y + 100, 'Eat smaller birds to survive. Click to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
+
+    //start game's music
+    this.background_music = this.game.add.audio('background-music');
+    this.background_music.loopFull(0.5);
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {
@@ -446,9 +417,7 @@ module.exports = Menu;
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eating_sound = this.game.add.audio('gulp');
-      this.background_music = this.game.add.audio('background-music');
-      this.background_music.loopFull(0.6);
+      this.eating_sound = this.game.add.audio('bite');
 
       //Create the score label
       this.createScore();
@@ -516,7 +485,6 @@ module.exports = Menu;
         enemy.exists = false;
       }
       else{
-        this.background_music.stop();
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
       }
     },
@@ -595,7 +563,7 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //load sounds
-    this.load.audio('gulp', 'assets/audio/gulp.wav');
+    this.load.audio('bite', 'assets/audio/bite.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {
