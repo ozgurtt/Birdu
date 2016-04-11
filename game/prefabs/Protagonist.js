@@ -3,6 +3,11 @@
 var drag_value = 70;
 var grav_value = drag_value + 30;
 var base_hero_x_length_increase = 5;
+var prev_pointer= {
+  x: 0,
+  y: 0,
+  reachedPrevPointer:true
+}
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
@@ -91,12 +96,30 @@ Protagonist.prototype.handlePlayerMovement = function(){
   var moving_horizontally = true;
   this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
-
-  //movement using mouse or mobile phone
+  //detect mouse/tap clicks, and update hero's desired destination
   if(this.game.input.activePointer.isDown) {
-    this.game.physics.arcade.moveToPointer(this,this.game.global.hero_movement_speed);
+    prev_pointer.x = this.game.input.activePointer.x;
+    prev_pointer.y = this.game.input.activePointer.y;
+    prev_pointer.reachedPrevPointer = false;
+    console.log("down");
   }
-  else{
+
+  //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
+  if ( !prev_pointer.reachedPrevPointer ){
+    //set to true when hero is approx at his destination (prev pointer's (x,y)
+    var pixel_margin_around_goal = 2;
+    prev_pointer.reachedPrevPointer =
+      this.x < prev_pointer.x+pixel_margin_around_goal &&
+      this.x > prev_pointer.x-pixel_margin_around_goal &&
+      this.y < prev_pointer.y+pixel_margin_around_goal &&
+      this.y > prev_pointer.y-pixel_margin_around_goal;
+
+    //move the hero towards his destination. Do this after setting the boolean, as the sprite may already be
+    //at the desired spot. In which case, it should not move
+    if ( !prev_pointer.reachedPrevPointer ){
+      this.game.physics.arcade.moveToXY(this, prev_pointer.x, prev_pointer.y, this.game.global.hero_movement_speed);
+    }
+  }else{
     this.body.gravity.y = grav_value;
     //HORIZONTAL MOVEMENT USING KEYBOARD
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
