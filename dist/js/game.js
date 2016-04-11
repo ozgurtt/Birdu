@@ -26,6 +26,8 @@ var prev_pointer= {
   y: 0,
   reachedPrevPointer:true
 }
+var pixel_margin_around_pointer_destination_goal = 1;
+var no_movement = 10;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
@@ -125,19 +127,35 @@ Protagonist.prototype.handlePlayerMovement = function(){
   //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
   if ( !prev_pointer.reachedPrevPointer ){
     //set to true when hero is approx at his destination (prev pointer's (x,y)
-    var pixel_margin_around_goal = 2;
+    var pixel_margin_around_pointer_destination_goal = 2;
     prev_pointer.reachedPrevPointer =
-      this.x < prev_pointer.x+pixel_margin_around_goal &&
-      this.x > prev_pointer.x-pixel_margin_around_goal &&
-      this.y < prev_pointer.y+pixel_margin_around_goal &&
-      this.y > prev_pointer.y-pixel_margin_around_goal;
+      this.x < prev_pointer.x+pixel_margin_around_pointer_destination_goal &&
+      this.x > prev_pointer.x-pixel_margin_around_pointer_destination_goal &&
+      this.y < prev_pointer.y+pixel_margin_around_pointer_destination_goal &&
+      this.y > prev_pointer.y-pixel_margin_around_pointer_destination_goal;
 
     //move the hero towards his destination. Do this after setting the boolean, as the sprite may already be
     //at the desired spot. In which case, it should not move
     if ( !prev_pointer.reachedPrevPointer ){
       this.game.physics.arcade.moveToXY(this, prev_pointer.x, prev_pointer.y, this.game.global.hero_movement_speed);
     }
-  }else{
+
+    //set sprite to face the same X direction that it is moving
+    if(Math.sign(this.scale.x) != Math.sign(this.body.velocity.x) ){
+      this.scale.x *= -1;
+    }
+    //set sprite to be angled towards its movement direction a bit
+    this.angle = 15 * Math.sign(this.scale.x) * Math.sign(this.body.velocity.y);
+  }
+  //NOT MOVING
+  else{
+      this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
+      this.angle = 0;
+  }
+
+/*
+  //KEYBOARD MOVEMENT
+  else{
     this.body.gravity.y = grav_value;
     //HORIZONTAL MOVEMENT USING KEYBOARD
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
@@ -184,6 +202,8 @@ Protagonist.prototype.handlePlayerMovement = function(){
       this.angle = 0;
     }
   }
+  */
+
 }
 
 

@@ -8,6 +8,8 @@ var prev_pointer= {
   y: 0,
   reachedPrevPointer:true
 }
+var pixel_margin_around_pointer_destination_goal = 1;
+var no_movement = 10;
 
 var Protagonist = function(game, x, y, frame) {
   Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
@@ -83,16 +85,6 @@ Protagonist.prototype.setSizeFromWidth = function(new_width){
 
 Protagonist.prototype.handlePlayerMovement = function(){
 
-  // Prevent directions and space key events bubbling up to browser,
-  // since these keys will make web page scroll which is not
-  // expected.
-  this.game.input.keyboard.addKeyCapture([
-      Phaser.Keyboard.LEFT,
-      Phaser.Keyboard.RIGHT,
-      Phaser.Keyboard.UP,
-      Phaser.Keyboard.DOWN
-  ]);
-
   var moving_horizontally = true;
   this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
@@ -101,71 +93,37 @@ Protagonist.prototype.handlePlayerMovement = function(){
     prev_pointer.x = this.game.input.activePointer.x;
     prev_pointer.y = this.game.input.activePointer.y;
     prev_pointer.reachedPrevPointer = false;
-    console.log("down");
   }
 
   //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
   if ( !prev_pointer.reachedPrevPointer ){
     //set to true when hero is approx at his destination (prev pointer's (x,y)
-    var pixel_margin_around_goal = 2;
+    var pixel_margin_around_pointer_destination_goal = 2;
     prev_pointer.reachedPrevPointer =
-      this.x < prev_pointer.x+pixel_margin_around_goal &&
-      this.x > prev_pointer.x-pixel_margin_around_goal &&
-      this.y < prev_pointer.y+pixel_margin_around_goal &&
-      this.y > prev_pointer.y-pixel_margin_around_goal;
+      this.x < prev_pointer.x+pixel_margin_around_pointer_destination_goal &&
+      this.x > prev_pointer.x-pixel_margin_around_pointer_destination_goal &&
+      this.y < prev_pointer.y+pixel_margin_around_pointer_destination_goal &&
+      this.y > prev_pointer.y-pixel_margin_around_pointer_destination_goal;
 
     //move the hero towards his destination. Do this after setting the boolean, as the sprite may already be
     //at the desired spot. In which case, it should not move
     if ( !prev_pointer.reachedPrevPointer ){
       this.game.physics.arcade.moveToXY(this, prev_pointer.x, prev_pointer.y, this.game.global.hero_movement_speed);
     }
-  }else{
-    this.body.gravity.y = grav_value;
-    //HORIZONTAL MOVEMENT USING KEYBOARD
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
-    {
-      this.body.gravity.y = 0;
-      this.scale.x = Math.abs(this.scale.x); //face sprite right
-      this.body.velocity.x = this.game.global.hero_movement_speed;
-      this.angle = 15;
-    }
-    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
-    {
-      this.body.gravity.y = 0;
-      this.scale.x = -1 * Math.abs(this.scale.x);//face sprite left
-      this.body.velocity.x = -this.game.global.hero_movement_speed;
-      this.angle = -15;
-    }else{
-      moving_horizontally = false
-    }
 
-    //VERTICAL MOVEMENT USING KEYBOARD
-    //put it after horizontal check, so that the direction the bird is looking will consider vertical movement more important than horizontal
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
-    {
-      this.body.velocity.y = -this.game.global.hero_movement_speed;
-      if(this.scale.x > 0){ //sprite is facing right
-        this.angle = -15;
-      }else{//sprite is facing left
-        this.angle = 15;
-      }
+    //set sprite to face the same X direction that it is moving
+    if(Math.sign(this.scale.x) != Math.sign(this.body.velocity.x) ){
+      this.scale.x *= -1;
     }
-    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
-    {
-      this.body.velocity.y = this.game.global.hero_movement_speed;
-      if(this.scale.x > 0){ //sprite is facing right
-        this.angle = 15;
-      }else{//sprite is facing left
-        this.angle = -15;
-      }
-    }
-    //NO MOVEMENT
-    else if(!moving_horizontally)
-    {
+    //set sprite to be angled towards its movement direction a bit
+    this.angle = 15 * Math.sign(this.scale.x) * Math.sign(this.body.velocity.y);
+  }
+  //NOT MOVING
+  else{
       this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
       this.angle = 0;
-    }
   }
+
 }
 
 
