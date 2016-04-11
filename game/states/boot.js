@@ -11,6 +11,7 @@ Boot.prototype = {
 
     //set up global variables and functions
     this.game.global = {
+      // Returns a uniformly distributed random integer between min (included) and max (excluded)
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
       },
@@ -44,10 +45,6 @@ Boot.prototype = {
   create: function() {
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
-  },
-  // Returns a uniformly distributed random integer between min (included) and max (excluded)
-  getRandomInt:function(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
   }
 
 };

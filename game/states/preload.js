@@ -9,9 +9,10 @@ Preload.prototype = {
   preload: function() {
     //loading image while loading other assets
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
-    this.asset = this.add.sprite(this.width/2, this.height/2, 'preloader');
-    this.asset.anchor.setTo(0.5, 0.5);
-    this.load.setPreloadSprite(this.asset);
+    this.asset = this.add.sprite(0, this.game.height/2, 'preloader'); //positions loading icon on left side of game, middle of screen
+    this.asset.anchor.setTo(0, 0.5);//loading icon's anchor is its left side, middle of its height
+    this.asset.width = this.game.width;//loading icon is the entire games width
+    this.load.setPreloadSprite(this.asset);//loading icon will grow to the right, completing when it hits the right side
 
     //spritesheets
     this.load.spritesheet('b-10', 'assets/birds/b-10.png', 114.00000000000000000000, 93);
