@@ -3,6 +3,7 @@
   //required modules (classes) with the help of browserify
   var Protagonist = require('../prefabs/Protagonist');
   var Sideways_enemy = require('../prefabs/Sideways_enemy');
+  var PieProgress = require('../prefabs/PieProgress');
   var text_margin_from_side_of_screen = 20;
 
   function Play() {}
@@ -31,6 +32,11 @@
       //Create the score label
       this.createScore();
 
+      this.progress = new PieProgress(this.game, this.game.world.centerX, this.game.world.centerY, 32);
+
+      this.game.world.add(this.progress);
+      
+        this.game.add.tween(this.progress).to({progress: 0}, 2000, Phaser.Easing.Quadratic.InOut, true, 0, Infinity, true);
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);

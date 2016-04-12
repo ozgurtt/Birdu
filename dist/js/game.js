@@ -15,7 +15,76 @@ window.onload = function () {
 
   game.state.start('boot');
 };
-},{"./states/boot":4,"./states/gameover":5,"./states/menu":6,"./states/play":7,"./states/preload":8}],2:[function(require,module,exports){
+},{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],2:[function(require,module,exports){
+'use strict';
+
+
+
+/*
+
+ENTIRE CLASS COPY + PASTED FROM  http://jsfiddle.net/lewster32/0yvemxnw/
+
+I, James Lowrey, did not write this
+
+*/
+
+
+
+
+
+var PieProgress = function(game, x, y, radius, color, angle) {
+  this._radius = radius;
+  this._progress = 1;
+  this.bmp = game.add.bitmapData(radius * 2, radius * 2);
+  Phaser.Sprite.call(this, game, x, y, this.bmp);
+
+  this.anchor.set(0.5);
+  this.angle = angle || -90;
+  this.color = color || "#fff";
+  this.updateProgress();
+}
+
+PieProgress.prototype = Object.create(Phaser.Sprite.prototype);
+PieProgress.prototype.constructor = PieProgress;
+
+PieProgress.prototype.updateProgress = function() {
+    var progress = this._progress;
+    progress = Phaser.Math.clamp(progress, 0.00001, 0.99999);
+
+    this.bmp.clear();
+    this.bmp.ctx.fillStyle = this.color;
+    this.bmp.ctx.beginPath();
+    this.bmp.ctx.arc(this._radius, this._radius, this._radius, 0, (Math.PI * 2) * progress, true);
+    this.bmp.ctx.lineTo(this._radius, this._radius);
+    this.bmp.ctx.closePath();
+    this.bmp.ctx.fill();
+    this.bmp.dirty = true;
+}
+
+Object.defineProperty(PieProgress.prototype, 'radius', {
+    get: function() {
+        return this._radius;
+    },
+    set: function(val) {
+        this._radius = (val > 0 ? val : 0);
+        this.bmp.resize(this._radius * 2, this._radius * 2);
+        this.updateProgress();
+    }
+});
+
+Object.defineProperty(PieProgress.prototype, 'progress', {
+    get: function() {
+        return this._progress;
+    },
+    set: function(val) {
+        this._progress = Phaser.Math.clamp(val, 0, 1);
+        this.updateProgress();
+    }
+});
+
+module.exports = PieProgress;
+
+},{}],3:[function(require,module,exports){
 'use strict';
 
 var drag_value = 70;
@@ -103,16 +172,6 @@ Protagonist.prototype.setSizeFromWidth = function(new_width){
 
 Protagonist.prototype.handlePlayerMovement = function(){
 
-  // Prevent directions and space key events bubbling up to browser,
-  // since these keys will make web page scroll which is not
-  // expected.
-  this.game.input.keyboard.addKeyCapture([
-      Phaser.Keyboard.LEFT,
-      Phaser.Keyboard.RIGHT,
-      Phaser.Keyboard.UP,
-      Phaser.Keyboard.DOWN
-  ]);
-
   var moving_horizontally = true;
   this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites * 2;
 
@@ -121,7 +180,6 @@ Protagonist.prototype.handlePlayerMovement = function(){
     prev_pointer.x = this.game.input.activePointer.x;
     prev_pointer.y = this.game.input.activePointer.y;
     prev_pointer.reachedPrevPointer = false;
-    console.log("down");
   }
 
   //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
@@ -153,63 +211,12 @@ Protagonist.prototype.handlePlayerMovement = function(){
       this.angle = 0;
   }
 
-/*
-  //KEYBOARD MOVEMENT
-  else{
-    this.body.gravity.y = grav_value;
-    //HORIZONTAL MOVEMENT USING KEYBOARD
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT))
-    {
-      this.body.gravity.y = 0;
-      this.scale.x = Math.abs(this.scale.x); //face sprite right
-      this.body.velocity.x = this.game.global.hero_movement_speed;
-      this.angle = 15;
-    }
-    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT))
-    {
-      this.body.gravity.y = 0;
-      this.scale.x = -1 * Math.abs(this.scale.x);//face sprite left
-      this.body.velocity.x = -this.game.global.hero_movement_speed;
-      this.angle = -15;
-    }else{
-      moving_horizontally = false
-    }
-
-    //VERTICAL MOVEMENT USING KEYBOARD
-    //put it after horizontal check, so that the direction the bird is looking will consider vertical movement more important than horizontal
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP))
-    {
-      this.body.velocity.y = -this.game.global.hero_movement_speed;
-      if(this.scale.x > 0){ //sprite is facing right
-        this.angle = -15;
-      }else{//sprite is facing left
-        this.angle = 15;
-      }
-    }
-    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN))
-    {
-      this.body.velocity.y = this.game.global.hero_movement_speed;
-      if(this.scale.x > 0){ //sprite is facing right
-        this.angle = 15;
-      }else{//sprite is facing left
-        this.angle = -15;
-      }
-    }
-    //NO MOVEMENT
-    else if(!moving_horizontally)
-    {
-      this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
-      this.angle = 0;
-    }
-  }
-  */
-
 }
 
 
 module.exports = Protagonist;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var num_enemy_spritesheets = 25;
@@ -324,7 +331,7 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
 
 module.exports = Sideways_enemy;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 
 'use strict';
 
@@ -378,7 +385,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -426,7 +433,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -480,12 +487,13 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
   'use strict';
   //required modules (classes) with the help of browserify
   var Protagonist = require('../prefabs/Protagonist');
   var Sideways_enemy = require('../prefabs/Sideways_enemy');
+  var PieProgress = require('../prefabs/PieProgress');
   var text_margin_from_side_of_screen = 20;
 
   function Play() {}
@@ -514,6 +522,11 @@ module.exports = Menu;
       //Create the score label
       this.createScore();
 
+      this.progress = new PieProgress(this.game, this.game.world.centerX, this.game.world.centerY, 32);
+
+      this.game.world.add(this.progress);
+      
+        this.game.add.tween(this.progress).to({progress: 0}, 2000, Phaser.Easing.Quadratic.InOut, true, 0, Infinity, true);
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
@@ -603,7 +616,7 @@ module.exports = Menu;
 
   module.exports = Play;
 
-},{"../prefabs/Protagonist":2,"../prefabs/Sideways_enemy":3}],8:[function(require,module,exports){
+},{"../prefabs/PieProgress":2,"../prefabs/Protagonist":3,"../prefabs/Sideways_enemy":4}],9:[function(require,module,exports){
 
 'use strict';
 function Preload() {
