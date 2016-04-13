@@ -9,15 +9,15 @@ Basic instructions on what I've done as are follows:
 ##Installing Phaser Build systems
 
 ```
-#first, install phaser game generator for easy, consistent phaser setup ::: #https://github.com/codevinsky/generator-phaser-official
-#install npm, then bower, then yo (in order to run our generator-phaser-official)
+#The Phaser game generator provides easy, consistent phaser setup ::: #https://github.com/codevinsky/generator-phaser-official
+#To install, first get dependencies. Install npm, then bower, then yo (in order to run our generator-phaser-official)
 sudo apt-get install nodejs #Web server
 sudo apt-get install npm #The NodeJS package manager
 npm install -g bower #package manager
 npm install -g yo #client-side dev stack, helps devs quickly build high quality web apps
 npm install -g grunt-cli #task-based command line build tool for JavaScript projects
 
-sudo npm install -g yo generator-phaser-official #YeoMan tool to auto-gen phaser game project
+sudo npm install -g yo generator-phaser-official #Desired YeoMan tool to auto-gen phaser game project
 
 cd ~/Documents
 yo phaser-official #Generate a project in current directory (phaser is v2.4.6 at time of writing)
