@@ -38,7 +38,7 @@ Menu.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //tell user how to play (text)
-    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. click to play!',style);
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. Click to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music

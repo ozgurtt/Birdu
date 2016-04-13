@@ -269,10 +269,8 @@ Sideways_enemy.prototype.setSpriteSize = function(hero){
   var hero_area = this.game.global.area(hero);
 
   //how big enemy sprites can get depends on the hero's current size, and the game's level
-  var area_range = 1.5 + this.game.global.level * .4;
-  area_range = Math.min(area_range, 3.5);
-  var min_area = .5 + this.game.global.level * .09;
-  min_area = Math.min(min_area,0.945);
+  var area_range = Math.min(3.5, 1.75 + this.game.global.level * .4);
+  var min_area = Math.min(0.945, 0.6 + this.game.global.level * .09);
 
   var my_area = hero_area * (area_range * Math.random() + min_area);
 
@@ -481,7 +479,7 @@ Menu.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //tell user how to play (text)
-    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. click to play!',style);
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. Click to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music

@@ -36,10 +36,8 @@ Sideways_enemy.prototype.setSpriteSize = function(hero){
   var hero_area = this.game.global.area(hero);
 
   //how big enemy sprites can get depends on the hero's current size, and the game's level
-  var area_range = 1.5 + this.game.global.level * .4;
-  area_range = Math.min(area_range, 3.5);
-  var min_area = .5 + this.game.global.level * .09;
-  min_area = Math.min(min_area,0.945);
+  var area_range = Math.min(3.5, 1.75 + this.game.global.level * .4);
+  var min_area = Math.min(0.945, 0.6 + this.game.global.level * .09);
 
   var my_area = hero_area * (area_range * Math.random() + min_area);
 
