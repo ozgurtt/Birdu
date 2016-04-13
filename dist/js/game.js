@@ -43,7 +43,7 @@ var PieProgress = function(game, x, y, radius, color, angle, text) {
   this.color = color || "#fff";
   this.updateProgress();
 
-  this.textItem = this.game.add.text(0,0, text, {font: "25px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
+  this.textItem = this.game.add.text(0,0, text, {font: "25px SlapAndCrumbly", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
   this.textItem.anchor.setTo(0.5, 0.5);
   this.addChild(this.textItem);
   this.textItem.angle = -this.angle;
@@ -396,22 +396,22 @@ GameOver.prototype = {
     this.background.width = this.game.world.width;
 
     //Game Over! text
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
-    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'Game Over!', style);
+    var style = { font: '65px SlapAndCrumbly', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
+    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'game over!', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
     //new high score text
-    style.font = '32px Arial';
-    this.congratsTextString = "Better luck next time. ";
+    style.font = '32px SlapAndCrumbly';
+    this.congratsTextString = "better luck next time. ";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
-        this.congratsTextString += "\nHigh Score: ";
+        this.congratsTextString += "\nhigh score: ";
 
         var new_highscore_txt = "";
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
           max = this.gameScore;
-          new_highscore_txt += "\nNew High Score! ";
+          new_highscore_txt += "\nnew high score! ";
         }
 
         this.congratsTextString += max+new_highscore_txt;
@@ -422,8 +422,8 @@ GameOver.prototype = {
     this.congratsText.anchor.setTo(0.5, 0.5);
 
     //restart game text
-    style.font = '16px Arial';
-    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click To Play Again', style);
+    style.font = '16px SlapAndCrumbly';
+    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'click to play again', style);
     this.instructionText.anchor.setTo(0.5, 0.5);
   },
   update: function () {
@@ -450,7 +450,7 @@ Menu.prototype = {
     this.background.width = this.game.world.width;
 
     //font styles for all text
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
+    var style = { font: '90px papercuts', fill: '#ffffff', align: 'right', stroke:"#000000", strokeThickness:5 };
 
     //main image/logo + its animations
     this.sprite = this.game.add.sprite(this.game.world.centerX, 138, 'b-28');
@@ -459,20 +459,23 @@ Menu.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //title of game text
-    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'Birdu', style);
+    this.titleText = this.game.add.text(this.game.world.centerX, 300, 'B I R D U', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
-    style.font = '18px Arial';
+    style.font = '30px papercuts';
+    style.strokeThickness = 2;
+
+    this.maxScore = this.game.add.text(this.game.world.centerX, this.titleText.y + this.titleText.height/2 + 25, '', style);
+    this.maxScore.anchor.setTo(0.5, 0.5);
 
     //display high score if possible
     if( typeof(Storage) !== "undefined") {
       var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
-      this.maxScore = this.game.add.text(this.game.world.centerX, this.titleText.y + this.titleText.height/2 + 25, 'High Score: '+max, style);
-      this.maxScore.anchor.setTo(0.5, 0.5);
+      this.maxScore.text = 'High Score: '+max;
     }
 
     //tell user how to play (text)
-    this.instructionsText = this.game.add.text(this.game.world.centerX, this.titleText.y + 100, 'Eat smaller birds to survive. Click to play!',style);
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.maxScore.y + 25, 'Eat smaller birds to survive. click to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
@@ -548,7 +551,7 @@ module.exports = Menu;
     //function to create an cool animating score, which will travel up to the player's total score, and disappear.
     createScoreAnimation: function(x, y, score){
         //Create a new label for the score
-        var scoreAnimation = this.game.add.text(x, y, score.toString(), {font: "15px Arial", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4});
+        var scoreAnimation = this.game.add.text(x, y, score.toString(), {font: "15px SlapAndCrumbly", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4});
         scoreAnimation.anchor.setTo(0.5, 0);
 
         //Tween this score label to the total score label
@@ -567,7 +570,7 @@ module.exports = Menu;
       this.scoreBuffer = 0; //how many points the player has that need to be “animated” into the main score
 
       //Create the score label
-      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px SlapAndCrumbly", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
       this.scoreLabel.anchor.setTo(1, 0);
 
       //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)

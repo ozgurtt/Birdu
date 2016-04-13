@@ -17,22 +17,22 @@ GameOver.prototype = {
     this.background.width = this.game.world.width;
 
     //Game Over! text
-    var style = { font: '65px Arial', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
-    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'Game Over!', style);
+    var style = { font: '65px papercuts', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
+    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'game over!', style);
     this.titleText.anchor.setTo(0.5, 0.5);
 
     //new high score text
-    style.font = '32px Arial';
-    this.congratsTextString = "Better luck next time. ";
+    style.font = '32px papercuts';
+    this.congratsTextString = "better luck next time. ";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
-        this.congratsTextString += "\nHigh Score: ";
+        this.congratsTextString += "\nhigh score: ";
 
         var new_highscore_txt = "";
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
           max = this.gameScore;
-          new_highscore_txt += "\nNew High Score! ";
+          new_highscore_txt += "\nnew high score! ";
         }
 
         this.congratsTextString += max+new_highscore_txt;
@@ -43,8 +43,8 @@ GameOver.prototype = {
     this.congratsText.anchor.setTo(0.5, 0.5);
 
     //restart game text
-    style.font = '16px Arial';
-    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click To Play Again', style);
+    style.font = '16px papercuts';
+    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'click to play again', style);
     this.instructionText.anchor.setTo(0.5, 0.5);
   },
   update: function () {

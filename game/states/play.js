@@ -57,7 +57,7 @@
     //function to create an cool animating score, which will travel up to the player's total score, and disappear.
     createScoreAnimation: function(x, y, score){
         //Create a new label for the score
-        var scoreAnimation = this.game.add.text(x, y, score.toString(), {font: "15px Arial", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4});
+        var scoreAnimation = this.game.add.text(x, y, score.toString(), {font: "15px papercuts", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4});
         scoreAnimation.anchor.setTo(0.5, 0);
 
         //Tween this score label to the total score label
@@ -76,7 +76,7 @@
       this.scoreBuffer = 0; //how many points the player has that need to be “animated” into the main score
 
       //Create the score label
-      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
       this.scoreLabel.anchor.setTo(1, 0);
 
       //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)

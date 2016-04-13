@@ -25,7 +25,7 @@ var PieProgress = function(game, x, y, radius, color, angle, text) {
   this.color = color || "#fff";
   this.updateProgress();
 
-  this.textItem = this.game.add.text(0,0, text, {font: "25px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
+  this.textItem = this.game.add.text(0,0, text, {font: "25px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
   this.textItem.anchor.setTo(0.5, 0.5);
   this.addChild(this.textItem);
   this.textItem.angle = -this.angle;

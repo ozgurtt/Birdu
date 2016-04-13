@@ -1,3 +1,5 @@
+@font-face {  font-family: "papercuts";  src: url('../assets/fonts/papercuts-2.ttf') format("truetype");}
+
 body {
   background-color: black;
 }

@@ -3,6 +3,7 @@ Images:
 'background.png' :: http://opengameart.org/content/cartoony-cloud-images
 all birds in 'birds/' directory from bevouliin (http://bevouliin.com), found on http://opengameart.org
 preloader.gif from phaser-official (yeoman) github project
+Chicken body/meat :: http://opengameart.org/content/shadowless-lpc-food
 
 Audio:
 
@@ -10,4 +11,6 @@ Bite sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
 The Plucked Bird :: http://opengameart.org/content/the-plucked-bird-nes-version
 acheivement :: https://www.freesound.org/people/LittleRobotSoundFactory/sounds/270331/
 
-Chicken body/meat :: http://opengameart.org/content/shadowless-lpc-food
+Font:
+
+Slap And Crumbly :: http://www.dafont.com/slap-and-crumbly.font#null
