@@ -28,7 +28,26 @@ grunt #will auto-compile JS file as you modify code, and will save production ou
 yo phaser-official:prefab "prefab_name"
 ```
 
-##Setting up Cordova
+##Installing Android Dependencies
+```
+#java 8
+sudo add-apt-repository ppa:webupd8team/java
+sudo apt-get update
+sudo apt-get install oracle-java8-installer
+sudo apt-get install oracle-java8-set-default
+
+#Android Studio and SDK
+sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 #Android Studio's 32 bit dependencies for 64 bit systems
+sudo apt-add-repository ppa:paolorotolo/android-studio #Project for auto-installing AS thru command line - https://paolorotolo.github.io/android-studio/
+sudo apt-get update 
+sudo apt-get install android-studio
+/opt/android-studio/bin/studio.sh #Must open AS and do the first time setup, in order to install the SDK correctly
+export ANDROID_HOME="/home/james/Android/Sdk/" #need to export ANDROID_HOME to bash's PATH
+/home/james/Android/Sdk/tools/android #Open SDK Manager and install a bunch of required tools
+#Now you're set to compile Cordova to Android projects!
+```
+
+##Using Cordova
 ```
 #https://cordova.apache.org/docs/en/4.0.0/guide/cli/
 sudo npm install -g cordova
