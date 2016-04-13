@@ -9,6 +9,7 @@ GameOver.prototype = {
   create: function () {
     //reset game variables
     this.game.global.level = 0;
+    this.game.global.hero_movement_speed = 120;
 
     //set background image
     this.background = this.game.add.sprite(0,0,'background');

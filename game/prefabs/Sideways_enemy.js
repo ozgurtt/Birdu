@@ -36,32 +36,12 @@ Sideways_enemy.prototype.setSpriteSize = function(hero){
   var hero_area = this.game.global.area(hero);
 
   //how big enemy sprites can get depends on the hero's current size, and the game's level
-  var my_area = hero_area;
-  switch(this.game.global.level){
-    case 0:
-      my_area *= (Math.random() * 2 + 0.5);
-      break;
-    case 1:
-      my_area *= (Math.random() * 2.5 + .6);
-      break;
-    case 2:
-      my_area *= (Math.random() * 3 + 0.7);
-      break;
-    case 3:
-      my_area *= (Math.random() * 3.5 + 0.85);
-      break;
-    case 4:
-      my_area *= (Math.random() * 3.5 + 0.9);
-      break;
-    case 5:
-      my_area *= (Math.random() * 4 + 0.93);
-      break;
-    default:
-      my_area *= (Math.random() * 4 + 0.945);
-      break;
-  }
+  var area_range = 1.5 + this.game.global.level * .4;
+  area_range = Math.min(area_range, 3.5);
+  var min_area = .5 + this.game.global.level * .09;
+  min_area = Math.min(min_area,0.945);
 
-  my_area = Math.floor(my_area,this.game.width / 10);
+  var my_area = hero_area * (area_range * Math.random() + min_area);
 
   var aspect_ratio = Math.abs(this.width / this.height);
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
@@ -74,22 +54,22 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
   //randomly place sprite's y position such that it will be 100% on screen
   this.position.y = (this.game.world.height - this.height) * Math.random() + this.height/2;
   this.body.velocity.y = 0;
+  this.body.velocity.x = this.game.global.hero_movement_speed * (Math.random() * 0.1 + Math.min(0.98, 0.9 + this.game.global.level * 0.01));
   this.body.allowGravity = false;
 
   if(Math.random() < 0.5){ //moves from left to right
     //start sprite a little bit outside the game on the left side
     this.position.x  = - this.width*.5;
 
-    this.body.velocity.x = this.game.global.hero_movement_speed * .9;
     this.scale.x = Math.abs(this.scale.x); //face sprite right
-
   }
   else{ //moves from right to left
     //start sprite a little bit outside the game on the right side
-    this.position.x  = this.game.world.width + this.width*.5;
+    this.position.x  = this.game.world.width + this.width*0.5;
 
-    this.body.velocity.x = -this.game.global.hero_movement_speed * .9;
     this.scale.x = -1 * Math.abs(this.scale.x); //face sprite left
+
+    this.body.velocity.x *= -1;//reverse movement direction
   }
 }
 
@@ -97,7 +77,7 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = this.game.global.getRandomInt(1, 35);
 
-  while(randImgId != this.game.global.hero_sprite_number &&
+  while(randImgId == this.game.global.hero_sprite_number ||
     non_flapping_sprite_img_ids.indexOf(randImgId) > -1 ){
     randImgId = this.game.global.getRandomInt(1, 35);
   }

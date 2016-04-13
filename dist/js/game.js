@@ -115,12 +115,10 @@ var pixel_margin_around_pointer_destination_goal = 1;
 var no_movement = 10;
 
 var Protagonist = function(game, x, y, frame) {
-  Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
-  this.game.global.hero_sprite_number = 28;
+  Phaser.Sprite.call(this, game, x, y, 'b-'+game.global.hero_sprite_number, frame);
 
   this.anchor.setTo(0.5, 0.5);
-  this.scale.x = this.game.global.original_hero_scale;
-  this.scale.y = this.game.global.original_hero_scale;
+  this.scale.setTo(this.game.global.original_hero_scale, this.game.global.original_hero_scale);
 
   // add animations + tweens specific for this sprite, and and play them if needed
   this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
@@ -271,32 +269,12 @@ Sideways_enemy.prototype.setSpriteSize = function(hero){
   var hero_area = this.game.global.area(hero);
 
   //how big enemy sprites can get depends on the hero's current size, and the game's level
-  var my_area = hero_area;
-  switch(this.game.global.level){
-    case 0:
-      my_area *= (Math.random() * 2 + 0.5);
-      break;
-    case 1:
-      my_area *= (Math.random() * 2.5 + .6);
-      break;
-    case 2:
-      my_area *= (Math.random() * 3 + 0.7);
-      break;
-    case 3:
-      my_area *= (Math.random() * 3.5 + 0.85);
-      break;
-    case 4:
-      my_area *= (Math.random() * 3.5 + 0.9);
-      break;
-    case 5:
-      my_area *= (Math.random() * 4 + 0.93);
-      break;
-    default:
-      my_area *= (Math.random() * 4 + 0.945);
-      break;
-  }
+  var area_range = 1.5 + this.game.global.level * .4;
+  area_range = Math.min(area_range, 3.5);
+  var min_area = .5 + this.game.global.level * .09;
+  min_area = Math.min(min_area,0.945);
 
-  my_area = Math.floor(my_area,this.game.width / 10);
+  var my_area = hero_area * (area_range * Math.random() + min_area);
 
   var aspect_ratio = Math.abs(this.width / this.height);
   var new_width = Math.sqrt(my_area / aspect_ratio); // Formula is : Area = width * height = width * (width / aspect_ratio)
@@ -309,22 +287,22 @@ Sideways_enemy.prototype.determineSpriteBehavior = function(){
   //randomly place sprite's y position such that it will be 100% on screen
   this.position.y = (this.game.world.height - this.height) * Math.random() + this.height/2;
   this.body.velocity.y = 0;
+  this.body.velocity.x = this.game.global.hero_movement_speed * (Math.random() * 0.1 + Math.min(0.98, 0.9 + this.game.global.level * 0.01));
   this.body.allowGravity = false;
 
   if(Math.random() < 0.5){ //moves from left to right
     //start sprite a little bit outside the game on the left side
     this.position.x  = - this.width*.5;
 
-    this.body.velocity.x = this.game.global.hero_movement_speed * .9;
     this.scale.x = Math.abs(this.scale.x); //face sprite right
-
   }
   else{ //moves from right to left
     //start sprite a little bit outside the game on the right side
-    this.position.x  = this.game.world.width + this.width*.5;
+    this.position.x  = this.game.world.width + this.width*0.5;
 
-    this.body.velocity.x = -this.game.global.hero_movement_speed * .9;
     this.scale.x = -1 * Math.abs(this.scale.x); //face sprite left
+
+    this.body.velocity.x *= -1;//reverse movement direction
   }
 }
 
@@ -332,7 +310,7 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
   //bird spritesheets are numbered 0-25, choose one at random
   var randImgId = this.game.global.getRandomInt(1, 35);
 
-  while(randImgId != this.game.global.hero_sprite_number &&
+  while(randImgId == this.game.global.hero_sprite_number ||
     non_flapping_sprite_img_ids.indexOf(randImgId) > -1 ){
     randImgId = this.game.global.getRandomInt(1, 35);
   }
@@ -371,23 +349,20 @@ Boot.prototype = {
         var good_job_audio = game.add.audio('shrink');
         good_job_audio.play();
 
-        //update all enemy speeds as they move across the screen
-        enemies.forEach(function(enemy){
-          enemy.body.velocity.x += 5 * Math.sign(enemy.body.velocity.x);
-        });
-
         //update hero's size, sprite, speed, etc as necessary
         var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
         shrinkToOriginalSize.start();
+
+        this.hero_movement_speed = Math.min(225,this.hero_movement_speed + 20);
       },
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
-      fps_of_flapping_sprites: 9, //frames per second for a sprite with only 4 images
+      fps_of_flapping_sprites: 9,
       hero_movement_speed: 120,
-      hero_sprite_number: 0,
+      hero_sprite_number: 28,
       level: 0,
-      level_up_hero_area: 9500,
+      level_up_hero_area: 9200,
       original_hero_scale: .3
     };
 
@@ -413,6 +388,7 @@ GameOver.prototype = {
   create: function () {
     //reset game variables
     this.game.global.level = 0;
+    this.game.global.hero_movement_speed = 120;
 
     //set background image
     this.background = this.game.add.sprite(0,0,'background');
@@ -620,14 +596,16 @@ module.exports = Menu;
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
 
+        //update progress bar after eating something
+        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
+
         //check for a level increase
         if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
           this.game.global.levelUp(this.game,this.hero,this.enemies);
-        }
 
-        //show level progress (after updating level)
-        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
-        this.progress_bar.textValue = this.game.global.level;
+          this.progress_bar.progress = 0;
+          this.progress_bar.textValue = this.game.global.level;
+        }
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);

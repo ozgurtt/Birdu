@@ -21,23 +21,20 @@ Boot.prototype = {
         var good_job_audio = game.add.audio('shrink');
         good_job_audio.play();
 
-        //update all enemy speeds as they move across the screen
-        enemies.forEach(function(enemy){
-          enemy.body.velocity.x += 5 * Math.sign(enemy.body.velocity.x);
-        });
-
         //update hero's size, sprite, speed, etc as necessary
         var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
         shrinkToOriginalSize.start();
+
+        this.hero_movement_speed = Math.min(225,this.hero_movement_speed + 20);
       },
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
-      fps_of_flapping_sprites: 9, //frames per second for a sprite with only 4 images
+      fps_of_flapping_sprites: 9,
       hero_movement_speed: 120,
-      hero_sprite_number: 0,
+      hero_sprite_number: 28,
       level: 0,
-      level_up_hero_area: 9500,
+      level_up_hero_area: 9200,
       original_hero_scale: .3
     };
 

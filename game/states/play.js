@@ -105,14 +105,16 @@
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
 
+        //update progress bar after eating something
+        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
+
         //check for a level increase
         if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
           this.game.global.levelUp(this.game,this.hero,this.enemies);
-        }
 
-        //show level progress (after updating level)
-        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
-        this.progress_bar.textValue = this.game.global.level;
+          this.progress_bar.progress = 0;
+          this.progress_bar.textValue = this.game.global.level;
+        }
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);

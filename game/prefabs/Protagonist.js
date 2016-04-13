@@ -12,12 +12,10 @@ var pixel_margin_around_pointer_destination_goal = 1;
 var no_movement = 10;
 
 var Protagonist = function(game, x, y, frame) {
-  Phaser.Sprite.call(this, game, x, y, 'b-28', frame);
-  this.game.global.hero_sprite_number = 28;
+  Phaser.Sprite.call(this, game, x, y, 'b-'+game.global.hero_sprite_number, frame);
 
   this.anchor.setTo(0.5, 0.5);
-  this.scale.x = this.game.global.original_hero_scale;
-  this.scale.y = this.game.global.original_hero_scale;
+  this.scale.setTo(this.game.global.original_hero_scale, this.game.global.original_hero_scale);
 
   // add animations + tweens specific for this sprite, and and play them if needed
   this.animations.add('idling', null, this.game.global.fps_of_flapping_sprites, true);
