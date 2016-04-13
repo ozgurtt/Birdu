@@ -14,16 +14,22 @@ I, James Lowrey, did not write this
 
 
 
-var PieProgress = function(game, x, y, radius, color, angle) {
+var PieProgress = function(game, x, y, radius, color, angle, text) {
   this._radius = radius;
   this._progress = 1;
   this.bmp = game.add.bitmapData(radius * 2, radius * 2);
   Phaser.Sprite.call(this, game, x, y, this.bmp);
 
-  this.anchor.set(0.5);
+  this.anchor.setTo(0.5,0.5);
   this.angle = angle || -90;
   this.color = color || "#fff";
   this.updateProgress();
+
+  this.textItem = this.game.add.text(0,0, text, {font: "25px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
+  this.textItem.anchor.setTo(0.5, 0.5);
+  this.addChild(this.textItem);
+  this.textItem.angle = -this.angle;
+  this._text = text;
 }
 
 PieProgress.prototype = Object.create(Phaser.Sprite.prototype);
@@ -42,6 +48,16 @@ PieProgress.prototype.updateProgress = function() {
     this.bmp.ctx.fill();
     this.bmp.dirty = true;
 }
+
+Object.defineProperty(PieProgress.prototype, 'textValue', {
+    get: function() {
+        return this._text;
+    },
+    set: function(val) {
+        this._text = val;
+        this.textItem.setText(this.textValue);
+    }
+});
 
 Object.defineProperty(PieProgress.prototype, 'radius', {
     get: function() {

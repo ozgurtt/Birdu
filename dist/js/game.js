@@ -32,16 +32,22 @@ I, James Lowrey, did not write this
 
 
 
-var PieProgress = function(game, x, y, radius, color, angle) {
+var PieProgress = function(game, x, y, radius, color, angle, text) {
   this._radius = radius;
   this._progress = 1;
   this.bmp = game.add.bitmapData(radius * 2, radius * 2);
   Phaser.Sprite.call(this, game, x, y, this.bmp);
 
-  this.anchor.set(0.5);
+  this.anchor.setTo(0.5,0.5);
   this.angle = angle || -90;
   this.color = color || "#fff";
   this.updateProgress();
+
+  this.textItem = this.game.add.text(0,0, text, {font: "25px Arial", fill: "#ffffff", stroke: "#535353", strokeThickness: 5});
+  this.textItem.anchor.setTo(0.5, 0.5);
+  this.addChild(this.textItem);
+  this.textItem.angle = -this.angle;
+  this._text = text;
 }
 
 PieProgress.prototype = Object.create(Phaser.Sprite.prototype);
@@ -60,6 +66,16 @@ PieProgress.prototype.updateProgress = function() {
     this.bmp.ctx.fill();
     this.bmp.dirty = true;
 }
+
+Object.defineProperty(PieProgress.prototype, 'textValue', {
+    get: function() {
+        return this._text;
+    },
+    set: function(val) {
+        this._text = val;
+        this.textItem.setText(this.textValue);
+    }
+});
 
 Object.defineProperty(PieProgress.prototype, 'radius', {
     get: function() {
@@ -395,6 +411,9 @@ GameOver.prototype = {
     this.gameScore = gameScoreValue;
   },
   create: function () {
+    //reset game variables
+    this.game.global.level = 0;
+
     //set background image
     this.background = this.game.add.sprite(0,0,'background');
     this.background.height = this.game.world.height;
@@ -410,10 +429,16 @@ GameOver.prototype = {
     this.congratsTextString = "Better luck next time. ";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
+        this.congratsTextString += "\nHigh Score: ";
+
+        var new_highscore_txt = "";
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
-          this.congratsTextString += "\n New High Score: "+this.gameScore
+          max = this.gameScore;
+          new_highscore_txt += "\nNew High Score! ";
         }
+
+        this.congratsTextString += max+new_highscore_txt;
     }
 
     //generic good job text
@@ -495,6 +520,7 @@ module.exports = Menu;
   var Sideways_enemy = require('../prefabs/Sideways_enemy');
   var PieProgress = require('../prefabs/PieProgress');
   var text_margin_from_side_of_screen = 20;
+  var progress_bar_radius = 32;
 
   function Play() {}
   Play.prototype = {
@@ -506,6 +532,19 @@ module.exports = Menu;
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
+      //Create the score label
+      this.createScore();
+
+      //progress bar
+      this.progress_bar = new PieProgress(this.game,
+        text_margin_from_side_of_screen+progress_bar_radius,
+        text_margin_from_side_of_screen+progress_bar_radius,
+        progress_bar_radius, "#fff",-90, this.game.global.level);
+      this.progress_bar.progress = 0;
+
+      this.game.world.add(this.progress_bar);
+
+      //hero/player! Create last so he appears over top of other elements
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
 
@@ -518,15 +557,6 @@ module.exports = Menu;
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
-
-      //Create the score label
-      this.createScore();
-
-      this.progress = new PieProgress(this.game, this.game.world.centerX, this.game.world.centerY, 32);
-
-      this.game.world.add(this.progress);
-      
-        this.game.add.tween(this.progress).to({progress: 0}, 2000, Phaser.Easing.Quadratic.InOut, true, 0, Infinity, true);
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
@@ -590,11 +620,14 @@ module.exports = Menu;
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
 
-        console.log(this.game.global.area(this.hero));
         //check for a level increase
         if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
           this.game.global.levelUp(this.game,this.hero,this.enemies);
         }
+
+        //show level progress (after updating level)
+        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
+        this.progress_bar.textValue = this.game.global.level;
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);

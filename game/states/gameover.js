@@ -7,6 +7,9 @@ GameOver.prototype = {
     this.gameScore = gameScoreValue;
   },
   create: function () {
+    //reset game variables
+    this.game.global.level = 0;
+
     //set background image
     this.background = this.game.add.sprite(0,0,'background');
     this.background.height = this.game.world.height;
@@ -22,10 +25,16 @@ GameOver.prototype = {
     this.congratsTextString = "Better luck next time. ";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
+        this.congratsTextString += "\nHigh Score: ";
+
+        var new_highscore_txt = "";
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
-          this.congratsTextString += "\n New High Score: "+this.gameScore
+          max = this.gameScore;
+          new_highscore_txt += "\nNew High Score! ";
         }
+
+        this.congratsTextString += max+new_highscore_txt;
     }
 
     //generic good job text

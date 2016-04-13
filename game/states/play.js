@@ -5,6 +5,7 @@
   var Sideways_enemy = require('../prefabs/Sideways_enemy');
   var PieProgress = require('../prefabs/PieProgress');
   var text_margin_from_side_of_screen = 20;
+  var progress_bar_radius = 32;
 
   function Play() {}
   Play.prototype = {
@@ -16,6 +17,19 @@
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
+      //Create the score label
+      this.createScore();
+
+      //progress bar
+      this.progress_bar = new PieProgress(this.game,
+        text_margin_from_side_of_screen+progress_bar_radius,
+        text_margin_from_side_of_screen+progress_bar_radius,
+        progress_bar_radius, "#fff",-90, this.game.global.level);
+      this.progress_bar.progress = 0;
+
+      this.game.world.add(this.progress_bar);
+
+      //hero/player! Create last so he appears over top of other elements
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
 
@@ -28,15 +42,6 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
-
-      //Create the score label
-      this.createScore();
-
-      this.progress = new PieProgress(this.game, this.game.world.centerX, this.game.world.centerY, 32);
-
-      this.game.world.add(this.progress);
-      
-        this.game.add.tween(this.progress).to({progress: 0}, 2000, Phaser.Easing.Quadratic.InOut, true, 0, Infinity, true);
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
@@ -100,11 +105,14 @@
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
 
-        console.log(this.game.global.area(this.hero));
         //check for a level increase
         if( this.game.global.area(this.hero) > this.game.global.level_up_hero_area){
           this.game.global.levelUp(this.game,this.hero,this.enemies);
         }
+
+        //show level progress (after updating level)
+        this.progress_bar.progress = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
+        this.progress_bar.textValue = this.game.global.level;
       }
       else{
         this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
