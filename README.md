@@ -51,6 +51,7 @@ sed -i '1s/^/export ANDROID_HOME="\/home\/james\/Android\/Sdk\/"\n/' ~/.bashrc #
 ```
 #https://cordova.apache.org/docs/en/4.0.0/guide/cli/
 sudo npm install -g cordova
+cordova plugin add org.apache.cordova.console #debugging capabilities
 
 cd ~/Documents
 cordova create cordova-birdu com.jtronlabs.birdu Birdu #cordova-birdu = directory name, com.jtronlabs.birdu = reverse domain-style identifier, Birdu = application's display title
@@ -68,4 +69,6 @@ cordova run android
 
 #generate final release with
 cordova build --release android
+
+#it helps to run this in Android studio, instead of the command line (for the logcat messages). Follow the instructions under "Opening a Project in Android Studio": https://cordova.apache.org/docs/en/6.x/guide/platforms/android/
 ```
