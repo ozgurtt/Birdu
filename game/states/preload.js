@@ -54,6 +54,8 @@ Preload.prototype = {
 
     //load static images
     this.load.image('meat', 'assets/meat.png');
+    this.load.image('play', 'assets/icon_play.png');
+    this.load.image('pause', 'assets/icon_pause.png');
     this.load.image('background', 'assets/background.png');
 
     //load sounds

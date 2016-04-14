@@ -39,7 +39,7 @@ sudo apt-get install oracle-java8-set-default
 #Android Studio and SDK
 sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 #Android Studio's 32 bit dependencies for 64 bit systems
 sudo apt-add-repository ppa:paolorotolo/android-studio #Project for auto-installing AS thru command line - https://paolorotolo.github.io/android-studio/
-sudo apt-get update 
+sudo apt-get update
 sudo apt-get install android-studio
 /opt/android-studio/bin/studio.sh #Must open AS and do the first time setup, in order to install the SDK correctly
 sed -i '1s/^/export ANDROID_HOME="\/home\/james\/Android\/Sdk\/"\n/' ~/.bashrc #need to export ANDROID_HOME to bash's PATH. Use 'sed' to insert a ANDROID_HOME's path into the bashrc profile, permanently adding this path variable. You can check your bashrc with 'nano ~/.bashrc', and the ANDROID_HOME should be the first line
@@ -64,4 +64,8 @@ cordova build
 #plug in your Android phone ( with USB debugging and non-Play store apps allowed), and wait for a pop-up that says that you trust this computer
 
 cordova run android
+#edit your config.xml to personalize your app
+
+#generate final release with
+cordova build --release android
 ```

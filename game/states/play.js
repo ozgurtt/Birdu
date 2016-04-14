@@ -6,6 +6,7 @@
   var PieProgress = require('../prefabs/PieProgress');
   var text_margin_from_side_of_screen = 20;
   var progress_bar_radius = 32;
+  var pause_icon_length = 36;
 
   function Play() {}
   Play.prototype = {
@@ -20,6 +21,17 @@
       //Create the score label
       this.createScore();
 
+      //play+pause icons
+      this.pause_icon = this.game.add.sprite(this.game.world.width - text_margin_from_side_of_screen - pause_icon_length/2,
+        this.game.world.height - text_margin_from_side_of_screen - pause_icon_length/2,
+        'pause');
+      this.pause_icon.width = pause_icon_length;
+      this.pause_icon.height = pause_icon_length;
+      this.pause_icon.anchor.setTo(0.5,0.5);
+      this.pause_icon.inputEnabled = true;
+      this.pause_icon.events.onInputUp.add(this.pauseGame, this);
+      this.game.input.onDown.add(this.unpauseGame, this); //add a listener for unpausing the game. Cannot be bound to a sprite or text (as these become paused as well)!!!
+
       //progress bar
       this.progress_bar = new PieProgress(this.game,
         text_margin_from_side_of_screen+progress_bar_radius,
@@ -33,6 +45,11 @@
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
 
+      //load the pause menu (just some text in this game) after the hero, so that it appears over top
+      this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", {font: "30px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.pause_text.anchor.setTo(0.5,0.5);
+      this.pause_text.visible = false;
+
       // create and add a group to hold our enemies (for sprite recycling)
       this.enemies = this.game.add.group();
 
@@ -42,6 +59,24 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+    },
+    pauseGame: function() {
+      if(!this.game.paused){
+        this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
+
+        this.pause_text.visible = true; //open 'pause menu'
+
+        this.game.paused = true; //actually pause the game
+      }
+    },
+    unpauseGame: function(){
+      if(this.game.paused){
+        this.pause_icon.loadTexture('pause');
+
+        this.pause_text.visible = false;
+
+        this.game.paused = false;
+      }
     },
     update: function() {
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
