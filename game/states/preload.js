@@ -1,7 +1,7 @@
 
 'use strict';
 function Preload() {
-  this.asset = null;
+  this.loading_bar = null;
   this.ready = false;
 }
 
@@ -9,10 +9,15 @@ Preload.prototype = {
   preload: function() {
     //loading image while loading other assets
     this.load.onLoadComplete.addOnce(this.onLoadComplete, this);
-    this.asset = this.add.sprite(0, this.game.height/2, 'preloader'); //positions loading icon on left side of game, middle of screen
-    this.asset.anchor.setTo(0, 0.5);//loading icon's anchor is its left side, middle of its height
-    this.asset.width = this.game.width;//loading icon is the entire games width
-    this.load.setPreloadSprite(this.asset);//loading icon will grow to the right, completing when it hits the right side
+    this.loading_bar = this.add.sprite(0, this.game.height/2, 'preloader'); //positions loading icon on left side of game, middle of screen
+    this.loading_bar.anchor.setTo(0, 0.5);//loading icon's anchor is its left side, middle of its height (so that it is placed vertically in the middle, but only grows to its right)
+    this.loading_bar.width = this.game.width;//loading icon is the entire games width
+    this.load.setPreloadSprite(this.loading_bar);//loading icon will grow to the right, completing when it hits the right side
+
+    this.loading_text = this.add.text(this.game.world.centerX,
+      this.loading_bar.y - this.loading_bar.height / 2 - 25,
+      'Loading...', {font: "50px Arial", fill: "#000", stroke: "#fff", strokeThickness: 4});
+    this.loading_text.anchor.setTo(0.5,0.5);
 
     //spritesheets
     this.load.spritesheet('b-10', 'assets/birds/b-10.png', 114.00000000000000000000, 93);
@@ -64,7 +69,7 @@ Preload.prototype = {
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {
-    this.asset.cropEnabled = false;
+    this.loading_bar.cropEnabled = false;
   },
   update: function() {
     if(!!this.ready) {

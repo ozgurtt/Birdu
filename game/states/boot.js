@@ -8,7 +8,8 @@ function Boot() {
 Boot.prototype = {
   preload: function() {
     this.load.image('preloader', 'assets/preloader.gif');
-    //this.game.scale.setResizeCallback(this.resize,this.game);
+
+    //force game to fill up screen
     this.game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 
     //set up global variables and functions
@@ -45,13 +46,6 @@ Boot.prototype = {
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
   }
-  /*,
-  resize: function(scale, parentBounds){
-    //this = 'game'
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
-  }
-  */
 };
 
 module.exports = Boot;
