@@ -5,10 +5,16 @@
 <!--[if gt IE 8]><!--> <html> <!--<![endif]-->
 <head>
   <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
   <title>birdu</title>
   <link href="css/styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+  <p class="font-loader">
+    This class is only here to force fonts to load for the game,
+    otherwise a refresh is required in Firefox and they won't work at all in chrome.
+    The CSS sheet hides this immediately.
+  </p>
   <div id="birdu"></div>
   <script src="js/phaser.min.js"></script>
   <script src="js/game.js"></script>

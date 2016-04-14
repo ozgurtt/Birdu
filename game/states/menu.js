@@ -13,7 +13,7 @@ Menu.prototype = {
     this.background.width = this.game.world.width;
 
     //font styles for all text
-    var style = { font: '90px papercuts', fill: '#ffffff', align: 'right', stroke:"#000000", strokeThickness:6 };
+    var style = { font: '90px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6 };
 
     //title of game text
     this.titleText = this.game.add.text(this.game.world.centerX, 100, 'B I R D U', style);
@@ -31,19 +31,24 @@ Menu.prototype = {
       this.maxScore.text = 'High Score: '+max;
     }
 
-    //main image/logo + its animations
+    //main image/logo + its animationsphaser
     this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'b-'+this.game.global.hero_sprite_number);
     this.sprite.anchor.setTo(0.5, 0.5);
     this.sprite.angle = -20;
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //tell user how to play (text)
-    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. Click to play!',style);
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive.\nClick to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
     this.background_music = this.game.add.audio('background-music');
     this.background_music.loopFull(0.5);
+
+    //ensure that text can fit on screen
+    this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
+    this.maxScore.width = Math.min(this.maxScore.width, window.innerWidth);
+    this.instructionsText.width = Math.min(this.instructionsText.width, window.innerWidth);
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {

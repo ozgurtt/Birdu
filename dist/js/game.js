@@ -3,7 +3,7 @@
 
 //global variables
 window.onload = function () {
-  var game = new Phaser.Game(800, 600, Phaser.AUTO, 'birdu');
+  var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'birdu');
 
   // Game States
   game.state.add('boot', require('./states/boot'));
@@ -334,6 +334,8 @@ function Boot() {
 Boot.prototype = {
   preload: function() {
     this.load.image('preloader', 'assets/preloader.gif');
+    //this.game.scale.setResizeCallback(this.resize,this.game);
+    this.game.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT;
 
     //set up global variables and functions
     this.game.global = {
@@ -368,6 +370,11 @@ Boot.prototype = {
   create: function() {
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
+  },
+  resize: function(scale, parentBounds){
+    //this = 'game'
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
   }
 
 };
@@ -429,6 +436,11 @@ GameOver.prototype = {
     style.font = '26px papercuts';
     this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click to play again', style);
     this.instructionText.anchor.setTo(0.5, 0.5);
+
+    //ensure that text can fit on screen
+    this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
+    this.congratsText.width = Math.min(this.congratsText.width, window.innerWidth);
+    this.instructionText.width = Math.min(this.instructionText.width, window.innerWidth);
   },
   update: function () {
     if(this.game.input.activePointer.justPressed()) {
@@ -454,7 +466,7 @@ Menu.prototype = {
     this.background.width = this.game.world.width;
 
     //font styles for all text
-    var style = { font: '90px papercuts', fill: '#ffffff', align: 'right', stroke:"#000000", strokeThickness:6 };
+    var style = { font: '90px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6 };
 
     //title of game text
     this.titleText = this.game.add.text(this.game.world.centerX, 100, 'B I R D U', style);
@@ -472,19 +484,24 @@ Menu.prototype = {
       this.maxScore.text = 'High Score: '+max;
     }
 
-    //main image/logo + its animations
+    //main image/logo + its animationsphaser
     this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'b-'+this.game.global.hero_sprite_number);
     this.sprite.anchor.setTo(0.5, 0.5);
     this.sprite.angle = -20;
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //tell user how to play (text)
-    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive. Click to play!',style);
+    this.instructionsText = this.game.add.text(this.game.world.centerX, this.sprite.y + this.sprite.height/2 + 100, 'Eat smaller birds to survive.\nClick to play!',style);
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
     this.background_music = this.game.add.audio('background-music');
     this.background_music.loopFull(0.5);
+
+    //ensure that text can fit on screen
+    this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
+    this.maxScore.width = Math.min(this.maxScore.width, window.innerWidth);
+    this.instructionsText.width = Math.min(this.instructionsText.width, window.innerWidth);
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {

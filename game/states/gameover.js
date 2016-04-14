@@ -52,6 +52,11 @@ GameOver.prototype = {
     style.font = '26px papercuts';
     this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click to play again', style);
     this.instructionText.anchor.setTo(0.5, 0.5);
+
+    //ensure that text can fit on screen
+    this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
+    this.congratsText.width = Math.min(this.congratsText.width, window.innerWidth);
+    this.instructionText.width = Math.min(this.instructionText.width, window.innerWidth);
   },
   update: function () {
     if(this.game.input.activePointer.justPressed()) {
