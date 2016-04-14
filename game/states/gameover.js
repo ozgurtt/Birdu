@@ -17,18 +17,17 @@ GameOver.prototype = {
     this.background.width = this.game.world.width;
 
     //Game Over! text
-    var style = { font: '65px papercuts', fill: '#ffffff', align: 'center',stroke:"#000000", strokeThickness:2};
-    this.titleText = this.game.add.text(this.game.world.centerX, 100, 'Game Over!', style);
+    this.titleText = this.game.add.text(this.game.world.centerX, 0, 'Game Over!', this.game.global.title_font_style);
     this.titleText.anchor.setTo(0.5, 0.5);
+    this.titleText.y = this.titleText.height/2; //must set after height is established
 
     //main image/logo + its animations
-    this.sprite = this.game.add.sprite(this.game.world.centerX, this.titleText.y + this.titleText.height / 2 + 100, 'b-29');
+    this.sprite = this.game.add.sprite(this.game.world.centerX, this.game.world.centerY, 'b-29');
     this.sprite.anchor.setTo(0.5, 0.5);
     this.sprite.angle = -20;
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    style.font = '32px papercuts';
     this.congratsTextString = "Better luck next time. ";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
@@ -45,13 +44,14 @@ GameOver.prototype = {
     }
 
     //generic good job text
-    this.congratsText = this.game.add.text(this.game.world.centerX,  this.sprite.y + this.sprite.height/2 + 100, this.congratsTextString, style);
+    this.congratsText = this.game.add.text(this.game.world.centerX,  0, this.congratsTextString, this.game.global.text_font_style);
     this.congratsText.anchor.setTo(0.5, 0.5);
+    this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    style.font = '26px papercuts';
-    this.instructionText = this.game.add.text(this.game.world.centerX, this.congratsText.y + this.congratsText.height/2 + 50, 'Click to play again', style);
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
+    this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 
     //ensure that text can fit on screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);

@@ -11,6 +11,7 @@
   function Play() {}
   Play.prototype = {
     create: function() {
+      console.log("gameplay started");
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
       //add background images
@@ -61,6 +62,7 @@
       this.eating_sound = this.game.add.audio('bite');
     },
     pauseGame: function() {
+      console.log('game paused');
       if(!this.game.paused){
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 

@@ -19,6 +19,18 @@
   <script src="js/phaser.min.js"></script>
   <script src="js/game.js"></script>
 
+  <script type="text/javascript">
+    // device APIs are available
+    //
+    function onDeviceReady() {
+      document.addEventListener("pause", onPause, false);
+    }
+    function  onPause(){
+      console.log("ANDROID PAUSE SUCCESSFUL!!!!!!! YAAAAAAAAAAAY");
+      alert("Pause worked");
+    }
+  </script>
+
 
 
 </body>
