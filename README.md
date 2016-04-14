@@ -42,7 +42,8 @@ sudo apt-add-repository ppa:paolorotolo/android-studio #Project for auto-install
 sudo apt-get update 
 sudo apt-get install android-studio
 /opt/android-studio/bin/studio.sh #Must open AS and do the first time setup, in order to install the SDK correctly
-export ANDROID_HOME="/home/james/Android/Sdk/" #need to export ANDROID_HOME to bash's PATH
+sed -i '1s/^/export ANDROID_HOME="\/home\/james\/Android\/Sdk\/"\n/' ~/.bashrc
+ #need to export ANDROID_HOME to bash's PATH. Use 'sed' to insert a ANDROID_HOME's path into the bashrc profile, permanently adding this path variable
 /home/james/Android/Sdk/tools/android #Open SDK Manager and install a bunch of required tools
 #Now you're set to compile Cordova to Android projects!
 ```
@@ -60,4 +61,8 @@ cordova platforms ls #show platforms
 rm -rf ~/Documents/cordova-birdu/www #delete current Cordova 'www' files
 cp -r ~/Documents/birdu/dist ~/Documents/cordova-birdu/www #copy game files to old 'www' directory location
 cordova build
+
+#plug in your Android phone ( with USB debugging and non-Play store apps allowed), and wait for a pop-up that says that you trust this computer
+
+cordova run android
 ```
