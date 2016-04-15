@@ -4,7 +4,6 @@
 //global variables
 window.onload = function () {
   var game = new Phaser.Game(window.innerWidth, window.innerHeight, Phaser.AUTO, 'birdu');
-
   // Game States
   game.state.add('boot', require('./states/boot'));
   game.state.add('gameover', require('./states/gameover'));
@@ -15,6 +14,7 @@ window.onload = function () {
 
   game.state.start('boot');
 };
+
 },{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],2:[function(require,module,exports){
 'use strict';
 
@@ -328,6 +328,8 @@ module.exports = Sideways_enemy;
 'use strict';
 
 function Boot() {
+  //Cordova device APIs
+  document.addEventListener("deviceready", this.onDeviceReady, false);
 
 }
 
@@ -373,9 +375,20 @@ Boot.prototype = {
   create: function() {
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
+  },
+  // Cordova device APIs are available
+  onDeviceReady: function() {
+    console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
+    document.addEventListener("pause", onPause, false);
   }
 };
 
+//Function to be called when Cordova senses a 'pause' event (another application takes foreground)
+//It seems the function must be named 'onPause'. It cannot be registered withing Boot.prototype, and have an eventlistener for this.onPause
+function onPause(){
+  console.log("ANDROID PAUSE SUCCESSFUL!!!!!!! YAAAAAAAAAAAY222222");
+  //save player state and pause game (if game is actively being played)
+}
 module.exports = Boot;
 
 },{}],6:[function(require,module,exports){
@@ -418,7 +431,7 @@ GameOver.prototype = {
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
           max = this.gameScore;
-          new_highscore_txt += "\nNew High Score! ";
+          new_highscore_txt += " New High Score! ";
         }
 
         this.congratsTextString += max+new_highscore_txt;
