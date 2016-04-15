@@ -37,7 +37,7 @@ GameOver.prototype = {
         if (this.gameScore > max){
           localStorage["maxScore"] = this.gameScore;
           max = this.gameScore;
-          new_highscore_txt += "\nNew High Score! ";
+          new_highscore_txt += " New High Score! ";
         }
 
         this.congratsTextString += max+new_highscore_txt;
