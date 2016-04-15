@@ -327,11 +327,7 @@ module.exports = Sideways_enemy;
 
 'use strict';
 
-function Boot() {
-  //Cordova device APIs
-  document.addEventListener("deviceready", this.onDeviceReady, false);
-
-}
+function Boot() {}
 
 Boot.prototype = {
   preload: function() {
@@ -362,9 +358,11 @@ Boot.prototype = {
         return Math.abs(sprite.width * sprite.height);
       },
       fps_of_flapping_sprites: 9,
+      score: Number(localStorage["currentGameScore"]) || 0,
+      scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
       hero_movement_speed: 120,
       hero_sprite_number: 28,
-      level: 0,
+      level: Number(localStorage["level"]) || 0,
       level_up_hero_area: 9200,
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
@@ -373,22 +371,12 @@ Boot.prototype = {
 
   },
   create: function() {
+    //start preload game state
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
-  },
-  // Cordova device APIs are available
-  onDeviceReady: function() {
-    console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
-    document.addEventListener("pause", onPause, false);
   }
 };
 
-//Function to be called when Cordova senses a 'pause' event (another application takes foreground)
-//It seems the function must be named 'onPause'. It cannot be registered withing Boot.prototype, and have an eventlistener for this.onPause
-function onPause(){
-  console.log("ANDROID PAUSE SUCCESSFUL!!!!!!! YAAAAAAAAAAAY222222");
-  //save player state and pause game (if game is actively being played)
-}
 module.exports = Boot;
 
 },{}],6:[function(require,module,exports){
@@ -397,14 +385,11 @@ module.exports = Boot;
 function GameOver() {}
 
 GameOver.prototype = {
-  init: function(gameScoreValue) {
-    this.gameScore = gameScoreValue;
+  //init takes parameters and sets class variables
+  init: function() {
+
   },
   create: function () {
-    //reset game variables
-    this.game.global.level = 0;
-    this.game.global.hero_movement_speed = 120;
-
     //set background image
     this.background = this.game.add.sprite(0,0,'background');
     this.background.height = this.game.world.height;
@@ -422,19 +407,24 @@ GameOver.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    this.congratsTextString = "Better luck next time. ";
+    this.congratsTextString = "Better luck next time.\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
-        this.congratsTextString += "\nHigh Score: ";
+        var highscore_txt = "High Score: ";
 
-        var new_highscore_txt = "";
-        if (this.gameScore > max){
-          localStorage["maxScore"] = this.gameScore;
-          max = this.gameScore;
-          new_highscore_txt += " New High Score! ";
+        var gameScore = this.game.global.score + this.game.global.scoreBuffer;
+        if (gameScore > max){
+          localStorage["maxScore"] = gameScore;
+          max = gameScore;
+          highscore_txt = "New "+highscore_txt;
         }
 
-        this.congratsTextString += max+new_highscore_txt;
+        this.congratsTextString += highscore_txt+max;
+
+        //reset stored game state
+        localStorage["level"] = 0;
+        localStorage["currentGameScore"] = 0;
+        localStorage["currentGameScoreBuffer"] = 0;
     }
 
     //generic good job text
@@ -446,6 +436,12 @@ GameOver.prototype = {
     this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
+
+    //reset game variables
+    this.game.global.level = 0;
+    this.game.global.hero_movement_speed = 120;
+    this.game.global.score = 0;
+    this.game.global.scoreBuffer = 0;
 
     //ensure that text can fit on screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
@@ -551,10 +547,17 @@ module.exports = Menu;
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
-      //Create the score label
-      this.createScore();
+      //Create the score label at top right of screen
+      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen,
+         text_margin_from_side_of_screen,
+         this.game.global.score.toString(),
+         {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.scoreLabel.anchor.setTo(1, 0);
+      //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
+      this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
 
-      //play+pause icons
+
+      //play/pause icon
       this.pause_icon = this.game.add.sprite(this.game.world.width - text_margin_from_side_of_screen - pause_icon_length/2,
         this.game.world.height - text_margin_from_side_of_screen - pause_icon_length/2,
         'pause');
@@ -563,7 +566,7 @@ module.exports = Menu;
       this.pause_icon.anchor.setTo(0.5,0.5);
       this.pause_icon.inputEnabled = true;
       this.pause_icon.events.onInputUp.add(this.pauseGame, this);
-      this.game.input.onDown.add(this.unpauseGame, this); //add a listener for unpausing the game. Cannot be bound to a sprite or text (as these become paused as well)!!!
+      this.game.input.onDown.add(this.resumeGame, this); //add a listener for unpausing the game. Cannot be bound to a sprite or text (as these become paused as well)!!!
 
       //progress bar
       this.progress_bar = new PieProgress(this.game,
@@ -592,9 +595,21 @@ module.exports = Menu;
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+
+
+
+      // Setup Cordova, as its device APIs are available
+      var onPauseFunc = this.onPauseByCordova;//save references, so that they can be accessed within document's EventListener function
+      var play_context = this;
+      document.addEventListener("deviceready", function() {
+        console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
+
+        document.addEventListener("pause", onPauseFunc(play_context), false);
+      },
+      false);
     },
     pauseGame: function() {
-      console.log('game paused');
+      console.log('Gameplay has paused');
       if(!this.game.paused){
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
@@ -603,7 +618,7 @@ module.exports = Menu;
         this.game.paused = true; //actually pause the game
       }
     },
-    unpauseGame: function(){
+    resumeGame: function(){
       if(this.game.paused){
         this.pause_icon.loadTexture('pause');
 
@@ -616,11 +631,11 @@ module.exports = Menu;
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
 
       //While there is score in the score buffer, add it to the actual score
-      if(this.scoreBuffer > 0){
-          this.score += 1;
-          this.scoreLabel.text = this.score;
+      if(this.game.global.scoreBuffer > 0){
+          this.game.global.score += 1;
+          this.scoreLabel.text = this.game.global.score.toString();
 
-          this.scoreBuffer--;
+          this.game.global.scoreBuffer--;
       }
     },
     //function to create an cool animating score, which will travel up to the player's total score, and disappear.
@@ -636,20 +651,8 @@ module.exports = Menu;
         scoreTween.onComplete.add(function(){
             scoreAnimation.destroy();
             this.scoreLabelTween.start();
-            this.scoreBuffer += score;
+            this.game.global.scoreBuffer += score;
         }, this);
-    },
-    //make player score visible at top of screen
-    createScore: function(){
-      this.score = 0; //players actual score
-      this.scoreBuffer = 0; //how many points the player has that need to be “animated” into the main score
-
-      //Create the score label
-      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
-      this.scoreLabel.anchor.setTo(1, 0);
-
-      //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
-      this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
     },
     bird_collision: function (hero, enemy) {
       this.eating_sound.play();
@@ -686,7 +689,7 @@ module.exports = Menu;
         }
       }
       else{
-        this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
+        this.game.state.start('gameover',true,false);
       }
     },
     generateEnemy: function() { //generate new pipes, recycling if possible
@@ -699,6 +702,21 @@ module.exports = Menu;
           this.game.add.existing(enemy); //must add to game before adding to group
           this.enemies.add(enemy);
         }
+    },
+    //Function to be called when Cordova senses a 'pause' event (another application takes foreground). Saves the state of the game
+    onPauseByCordova: function(play_context){
+      //the actual onPause function used by cordova. It cannot have parameters, but needs a way to reference the game to make changes.
+      //So use the super function parameter and return a parameter-less function! Complicated I know...
+      return function(){
+        console.log("Cordova has paused the game");
+        play_context.pauseGame();
+
+        if( typeof(Storage) !== "undefined") {
+            localStorage["level"] = play_context.game.global.level;
+            localStorage["currentGameScore"] = play_context.game.global.score;
+            localStorage["currentGameScoreBuffer"] = play_context.game.global.scoreBuffer;
+        }
+      }
     }
 
   };

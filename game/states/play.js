@@ -18,10 +18,17 @@
       this.background.height = this.game.world.height;
       this.background.width = this.game.world.width;
 
-      //Create the score label
-      this.createScore();
+      //Create the score label at top right of screen
+      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen,
+         text_margin_from_side_of_screen,
+         this.game.global.score.toString(),
+         {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.scoreLabel.anchor.setTo(1, 0);
+      //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
+      this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
 
-      //play+pause icons
+
+      //play/pause icon
       this.pause_icon = this.game.add.sprite(this.game.world.width - text_margin_from_side_of_screen - pause_icon_length/2,
         this.game.world.height - text_margin_from_side_of_screen - pause_icon_length/2,
         'pause');
@@ -30,7 +37,7 @@
       this.pause_icon.anchor.setTo(0.5,0.5);
       this.pause_icon.inputEnabled = true;
       this.pause_icon.events.onInputUp.add(this.pauseGame, this);
-      this.game.input.onDown.add(this.unpauseGame, this); //add a listener for unpausing the game. Cannot be bound to a sprite or text (as these become paused as well)!!!
+      this.game.input.onDown.add(this.resumeGame, this); //add a listener for unpausing the game. Cannot be bound to a sprite or text (as these become paused as well)!!!
 
       //progress bar
       this.progress_bar = new PieProgress(this.game,
@@ -59,9 +66,21 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+
+
+
+      // Setup Cordova, as its device APIs are available
+      var onPauseFunc = this.onPauseByCordova;//save references, so that they can be accessed within document's EventListener function
+      var play_context = this;
+      document.addEventListener("deviceready", function() {
+        console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
+
+        document.addEventListener("pause", onPauseFunc(play_context), false);
+      },
+      false);
     },
     pauseGame: function() {
-      console.log('game paused');
+      console.log('Gameplay has paused');
       if(!this.game.paused){
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
@@ -70,7 +89,7 @@
         this.game.paused = true; //actually pause the game
       }
     },
-    unpauseGame: function(){
+    resumeGame: function(){
       if(this.game.paused){
         this.pause_icon.loadTexture('pause');
 
@@ -83,11 +102,11 @@
       this.game.physics.arcade.collide(this.hero, this.enemies, this.bird_collision, null, this);
 
       //While there is score in the score buffer, add it to the actual score
-      if(this.scoreBuffer > 0){
-          this.score += 1;
-          this.scoreLabel.text = this.score;
+      if(this.game.global.scoreBuffer > 0){
+          this.game.global.score += 1;
+          this.scoreLabel.text = this.game.global.score.toString();
 
-          this.scoreBuffer--;
+          this.game.global.scoreBuffer--;
       }
     },
     //function to create an cool animating score, which will travel up to the player's total score, and disappear.
@@ -103,20 +122,8 @@
         scoreTween.onComplete.add(function(){
             scoreAnimation.destroy();
             this.scoreLabelTween.start();
-            this.scoreBuffer += score;
+            this.game.global.scoreBuffer += score;
         }, this);
-    },
-    //make player score visible at top of screen
-    createScore: function(){
-      this.score = 0; //players actual score
-      this.scoreBuffer = 0; //how many points the player has that need to be “animated” into the main score
-
-      //Create the score label
-      this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen, text_margin_from_side_of_screen, "0", {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
-      this.scoreLabel.anchor.setTo(1, 0);
-
-      //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
-      this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
     },
     bird_collision: function (hero, enemy) {
       this.eating_sound.play();
@@ -153,7 +160,7 @@
         }
       }
       else{
-        this.game.state.start('gameover',true,false, this.score + this.scoreBuffer);
+        this.game.state.start('gameover',true,false);
       }
     },
     generateEnemy: function() { //generate new pipes, recycling if possible
@@ -166,6 +173,21 @@
           this.game.add.existing(enemy); //must add to game before adding to group
           this.enemies.add(enemy);
         }
+    },
+    //Function to be called when Cordova senses a 'pause' event (another application takes foreground). Saves the state of the game
+    onPauseByCordova: function(play_context){
+      //the actual onPause function used by cordova. It cannot have parameters, but needs a way to reference the game to make changes.
+      //So use the super function parameter and return a parameter-less function! Complicated I know...
+      return function(){
+        console.log("Cordova has paused the game");
+        play_context.pauseGame();
+
+        if( typeof(Storage) !== "undefined") {
+            localStorage["level"] = play_context.game.global.level;
+            localStorage["currentGameScore"] = play_context.game.global.score;
+            localStorage["currentGameScoreBuffer"] = play_context.game.global.scoreBuffer;
+        }
+      }
     }
 
   };

@@ -1,11 +1,7 @@
 
 'use strict';
 
-function Boot() {
-  //Cordova device APIs
-  document.addEventListener("deviceready", this.onDeviceReady, false);
-
-}
+function Boot() {}
 
 Boot.prototype = {
   preload: function() {
@@ -36,9 +32,11 @@ Boot.prototype = {
         return Math.abs(sprite.width * sprite.height);
       },
       fps_of_flapping_sprites: 9,
+      score: Number(localStorage["currentGameScore"]) || 0,
+      scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
       hero_movement_speed: 120,
       hero_sprite_number: 28,
-      level: 0,
+      level: Number(localStorage["level"]) || 0,
       level_up_hero_area: 9200,
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
@@ -47,20 +45,10 @@ Boot.prototype = {
 
   },
   create: function() {
+    //start preload game state
     this.game.input.maxPointers = 1;
     this.game.state.start('preload');
-  },
-  // Cordova device APIs are available
-  onDeviceReady: function() {
-    console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
-    document.addEventListener("pause", onPause, false);
   }
 };
 
-//Function to be called when Cordova senses a 'pause' event (another application takes foreground)
-//It seems the function must be named 'onPause'. It cannot be registered withing Boot.prototype, and have an eventlistener for this.onPause
-function onPause(){
-  console.log("ANDROID PAUSE SUCCESSFUL!!!!!!! YAAAAAAAAAAAY222222");
-  //save player state and pause game (if game is actively being played)
-}
 module.exports = Boot;
