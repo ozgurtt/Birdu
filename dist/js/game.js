@@ -531,7 +531,6 @@ module.exports = Menu;
   function Play() {}
   Play.prototype = {
     create: function() {
-      console.log("gameplay started");
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
       //add background images
