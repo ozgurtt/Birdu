@@ -19,8 +19,9 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        var good_job_audio = game.add.audio('shrink');
-        good_job_audio.play();
+        game.state.states.play.levelup_sound.play();
+        game.state.states.play.levelup_text.visible = true;
+        game.state.states.play.levelup_text_tween.start();
 
         //update hero's size, sprite, speed, etc as necessary
         var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
@@ -37,10 +38,11 @@ Boot.prototype = {
       hero_movement_speed: 120,
       hero_sprite_number: 28,
       level: Number(localStorage["level"]) || 0,
-      level_up_hero_area: 9200,
+      level_up_hero_area: 1000,
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
-      text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3}
+      text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
+      score_font_style:{font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10}
     };
 
   },

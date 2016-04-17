@@ -11,6 +11,7 @@ Cordova_Api_Manager.prototype = {
       When an event handler gets called (all functions in this object are event handlers),
       "this" no longer references the "Cordova_Api_Manager" object, instead it is global scope.
       You need to capture "this" into a local variable that the functions will capture.
+      http://stackoverflow.com/questions/1081499/accessing-an-objects-property-from-an-event-listener-call-in-javascript?answertab=votes#tab-top
 
       There is a bit of a hack here. Cordova API calls typically have no parameters, but I need to reference this current object (and the Phaser game in later API calls)
       So 'this' will be saved to a variable, and when the cordovaDeviceReady function is called in a different context, it will have a
@@ -406,8 +407,9 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        var good_job_audio = game.add.audio('shrink');
-        good_job_audio.play();
+        game.state.states.play.levelup_sound.play();
+        game.state.states.play.levelup_text.visible = true;
+        game.state.states.play.levelup_text_tween.start();
 
         //update hero's size, sprite, speed, etc as necessary
         var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
@@ -424,10 +426,11 @@ Boot.prototype = {
       hero_movement_speed: 120,
       hero_sprite_number: 28,
       level: Number(localStorage["level"]) || 0,
-      level_up_hero_area: 9200,
+      level_up_hero_area: 1000,
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
-      text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3}
+      text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
+      score_font_style:{font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10}
     };
 
   },
@@ -613,7 +616,7 @@ module.exports = Menu;
       this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen,
          text_margin_from_side_of_screen,
          this.game.global.score.toString(),
-         {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+         this.game.global.score_font_style);
       this.scoreLabel.anchor.setTo(1, 0);
       //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
       this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
@@ -644,7 +647,7 @@ module.exports = Menu;
       this.game.add.existing(this.hero);
 
       //load the pause menu (just some text in this game) after the hero, so that it appears over top
-      this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", {font: "30px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", this.game.global.score_font_style);
       this.pause_text.anchor.setTo(0.5,0.5);
       this.pause_text.visible = false;
 
@@ -657,6 +660,16 @@ module.exports = Menu;
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+
+      this.levelup_sound = this.game.add.audio('levelup');
+      this.levelup_text = this.game.add.text(this.game.world.centerX,text_margin_from_side_of_screen,
+        "Level Up",
+        this.game.global.score_font_style);
+      this.levelup_text.visible = false;
+      //show a cool animation of "Level Up" text
+      this.levelup_text_tween = this.game.add.tween(this.levelup_text.scale).from({x:0.1, y: 0.1}, 3000, Phaser.Easing.Exponential.In, true);
+      //hide text when tween ends
+      this.levelup_text_tween.onComplete.add(function(){ this.levelup_text.visible = false; },this);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -836,7 +849,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('bite', 'assets/audio/bite.wav');
-    this.load.audio('shrink', 'assets/audio/shrink.wav');
+    this.load.audio('levelup', 'assets/audio/levelup.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
   create: function() {

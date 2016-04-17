@@ -23,7 +23,7 @@
       this.scoreLabel = this.game.add.text(this.game.world.width - text_margin_from_side_of_screen,
          text_margin_from_side_of_screen,
          this.game.global.score.toString(),
-         {font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+         this.game.global.score_font_style);
       this.scoreLabel.anchor.setTo(1, 0);
       //Create a tween to grow (for 200ms) and then shrink back to normal size (in 200ms)
       this.scoreLabelTween = this.add.tween(this.scoreLabel.scale).to({ x: 1.5, y: 1.5}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In);
@@ -54,7 +54,7 @@
       this.game.add.existing(this.hero);
 
       //load the pause menu (just some text in this game) after the hero, so that it appears over top
-      this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", {font: "30px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10});
+      this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", this.game.global.score_font_style);
       this.pause_text.anchor.setTo(0.5,0.5);
       this.pause_text.visible = false;
 
@@ -67,6 +67,16 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+
+      this.levelup_sound = this.game.add.audio('levelup');
+      this.levelup_text = this.game.add.text(this.game.world.centerX,text_margin_from_side_of_screen,
+        "Level Up",
+        this.game.global.score_font_style);
+      this.levelup_text.visible = false;
+      //show a cool animation of "Level Up" text
+      this.levelup_text_tween = this.game.add.tween(this.levelup_text.scale).from({x:0.1, y: 0.1}, 3000, Phaser.Easing.Exponential.In, true);
+      //hide text when tween ends
+      this.levelup_text_tween.onComplete.add(function(){ this.levelup_text.visible = false; },this);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');

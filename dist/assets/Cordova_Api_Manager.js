@@ -10,6 +10,7 @@ Cordova_Api_Manager.prototype = {
       When an event handler gets called (all functions in this object are event handlers),
       "this" no longer references the "Cordova_Api_Manager" object, instead it is global scope.
       You need to capture "this" into a local variable that the functions will capture.
+      http://stackoverflow.com/questions/1081499/accessing-an-objects-property-from-an-event-listener-call-in-javascript?answertab=votes#tab-top
 
       There is a bit of a hack here. Cordova API calls typically have no parameters, but I need to reference this current object (and the Phaser game in later API calls)
       So 'this' will be saved to a variable, and when the cordovaDeviceReady function is called in a different context, it will have a
