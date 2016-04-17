@@ -1,14 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 
-/*
-// Game States
-var Boot = require('./states/boot');
-var Gameover =  require('./states/gameover');
-var Menu = require('./states/menu');
-var Play = require('./states/play');
-var Preload = require('./states/preload');
-*/
-
 var Cordova_Api_Manager = function() {  }
 Cordova_Api_Manager.prototype.constructor = Cordova_Api_Manager;
 
@@ -16,6 +7,10 @@ Cordova_Api_Manager.prototype = {
     cordovaDeviceReady: function(game){
       /*
       Cordova's function that signals the devicec is ready. add listeners and Cordova API calls here.
+
+      When an event handler gets called (all functions in this object are event handlers),
+      "this" no longer references the "Cordova_Api_Manager" object, instead it is global scope.
+      You need to capture "this" into a local variable that the functions will capture.
 
       There is a bit of a hack here. Cordova API calls typically have no parameters, but I need to reference this current object (and the Phaser game in later API calls)
       So 'this' will be saved to a variable, and when the cordovaDeviceReady function is called in a different context, it will have a
@@ -38,18 +33,13 @@ Cordova_Api_Manager.prototype = {
       //So the 'game' parameter acts as a saved reference to the Phaser game, and a parameter-less function is returned for Cordova's API call
       return function(){
         console.log("Cordova has paused the game");
-console.log(game);
+
         if( game.state.current == "play" ){//if play state is active, call the play state's pause function (which will alter the UI)
-console.log(game);
           game.state.states.play.pauseGame(); //call the play state's pauseGame function
-  console.log(game);
           game.state.states.play.saveGameState();
-  console.log(game);
         }
-console.log(game);
 
         game.paused = true; //pause the game last (since previous functions may modify the game or UI)
-console.log(game);
       }
     },
     onResumeByCordova: function(game){
@@ -674,6 +664,8 @@ module.exports = Menu;
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
         this.pause_text.visible = true; //open 'pause menu'
+
+        this.saveGameState();
 
         this.game.paused = true; //actually pause the game
       }

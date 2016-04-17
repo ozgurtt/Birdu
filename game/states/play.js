@@ -75,6 +75,8 @@
 
         this.pause_text.visible = true; //open 'pause menu'
 
+        this.saveGameState();
+
         this.game.paused = true; //actually pause the game
       }
     },

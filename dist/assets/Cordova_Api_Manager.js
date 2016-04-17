@@ -1,13 +1,4 @@
 
-/*
-// Game States
-var Boot = require('./states/boot');
-var Gameover =  require('./states/gameover');
-var Menu = require('./states/menu');
-var Play = require('./states/play');
-var Preload = require('./states/preload');
-*/
-
 var Cordova_Api_Manager = function() {  }
 Cordova_Api_Manager.prototype.constructor = Cordova_Api_Manager;
 
@@ -15,6 +6,10 @@ Cordova_Api_Manager.prototype = {
     cordovaDeviceReady: function(game){
       /*
       Cordova's function that signals the devicec is ready. add listeners and Cordova API calls here.
+
+      When an event handler gets called (all functions in this object are event handlers),
+      "this" no longer references the "Cordova_Api_Manager" object, instead it is global scope.
+      You need to capture "this" into a local variable that the functions will capture.
 
       There is a bit of a hack here. Cordova API calls typically have no parameters, but I need to reference this current object (and the Phaser game in later API calls)
       So 'this' will be saved to a variable, and when the cordovaDeviceReady function is called in a different context, it will have a
@@ -37,18 +32,13 @@ Cordova_Api_Manager.prototype = {
       //So the 'game' parameter acts as a saved reference to the Phaser game, and a parameter-less function is returned for Cordova's API call
       return function(){
         console.log("Cordova has paused the game");
-console.log(game);
+
         if( game.state.current == "play" ){//if play state is active, call the play state's pause function (which will alter the UI)
-console.log(game);
           game.state.states.play.pauseGame(); //call the play state's pauseGame function
-  console.log(game);
           game.state.states.play.saveGameState();
-  console.log(game);
         }
-console.log(game);
 
         game.paused = true; //pause the game last (since previous functions may modify the game or UI)
-console.log(game);
       }
     },
     onResumeByCordova: function(game){
