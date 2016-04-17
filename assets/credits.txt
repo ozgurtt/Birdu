@@ -9,7 +9,7 @@ Play Icon :: https://design.google.com/icons/index.html#ic_play_arrow
 Audio:
 Bite sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
 The Plucked Bird :: http://opengameart.org/content/the-plucked-bird-nes-version
-acheivement :: https://www.freesound.org/people/LittleRobotSoundFactory/sounds/270331/
+levelup :: https://www.freesound.org/people/LittleRobotSoundFactory/sounds/270404/
 
 Font:
 Paper Cuts :: http://www.dafont.com/paper-cuts.font
