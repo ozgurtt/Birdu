@@ -4,6 +4,8 @@ I am working on a bird-eats-bird game to acclimate myself to the phaser ecosyste
 
 [Click Here to play](http://jtronlabs.github.io/Birdu/dist/index.html)
 
+[Click Here to view it on the Google Play Store](https://play.google.com/store/apps/details?id=com.jtronlabs.birdu)
+
 Basic instructions on what I've done as are follows:
 
 ##Installing Phaser Build systems
