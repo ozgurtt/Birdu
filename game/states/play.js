@@ -9,6 +9,7 @@
   var pause_icon_length = 36;
 
   function Play() {}
+
   Play.prototype = {
     create: function() {
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -66,18 +67,6 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
-
-
-
-      // Setup Cordova, as its device APIs are available
-      var onPauseFunc = this.onPauseByCordova;//save references, so that they can be accessed within document's EventListener function
-      var play_context = this;
-      document.addEventListener("deviceready", function() {
-        console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
-
-        document.addEventListener("pause", onPauseFunc(play_context), false);
-      },
-      false);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -87,6 +76,14 @@
         this.pause_text.visible = true; //open 'pause menu'
 
         this.game.paused = true; //actually pause the game
+      }
+    },
+    saveGameState: function(){
+      //save the game's state to local storage
+      if( typeof(Storage) !== "undefined") {
+          localStorage["level"] = this.game.global.level;
+          localStorage["currentGameScore"] = this.game.global.score;
+          localStorage["currentGameScoreBuffer"] = this.game.global.scoreBuffer;
       }
     },
     resumeGame: function(){
@@ -173,21 +170,6 @@
           this.game.add.existing(enemy); //must add to game before adding to group
           this.enemies.add(enemy);
         }
-    },
-    //Function to be called when Cordova senses a 'pause' event (another application takes foreground). Saves the state of the game
-    onPauseByCordova: function(play_context){
-      //the actual onPause function used by cordova. It cannot have parameters, but needs a way to reference the game to make changes.
-      //So use the super function parameter and return a parameter-less function! Complicated I know...
-      return function(){
-        console.log("Cordova has paused the game");
-        play_context.pauseGame();
-
-        if( typeof(Storage) !== "undefined") {
-            localStorage["level"] = play_context.game.global.level;
-            localStorage["currentGameScore"] = play_context.game.global.score;
-            localStorage["currentGameScoreBuffer"] = play_context.game.global.scoreBuffer;
-        }
-      }
     }
 
   };

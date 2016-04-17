@@ -1,4 +1,71 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+
+/*
+// Game States
+var Boot = require('./states/boot');
+var Gameover =  require('./states/gameover');
+var Menu = require('./states/menu');
+var Play = require('./states/play');
+var Preload = require('./states/preload');
+*/
+
+var Cordova_Api_Manager = function() {  }
+Cordova_Api_Manager.prototype.constructor = Cordova_Api_Manager;
+
+Cordova_Api_Manager.prototype = {
+    cordovaDeviceReady: function(game){
+      /*
+      Cordova's function that signals the devicec is ready. add listeners and Cordova API calls here.
+
+      There is a bit of a hack here. Cordova API calls typically have no parameters, but I need to reference this current object (and the Phaser game in later API calls)
+      So 'this' will be saved to a variable, and when the cordovaDeviceReady function is called in a different context, it will have a
+      saved reference to the needed objects.
+
+      Also, this function returns a function (a parameter-less one). This is because Cordova API calls don't usually have parameters, but
+      I need to access the Phaser game. So I can pass down references in these functions, and return ones Cordova can use.
+      */
+
+      var context = this;
+      return function(){
+        console.log("CORDOVA DEVICE APIS READY AND AVAILABLE");
+
+        document.addEventListener("pause", context.onPauseByCordova(game), false);
+        document.addEventListener("resume", context.onResumeByCordova(game), false);
+      }
+    },
+    onPauseByCordova: function(game){
+      //the actual onPause function used by cordova cannot have parameters, but needs a way to reference the game.
+      //So the 'game' parameter acts as a saved reference to the Phaser game, and a parameter-less function is returned for Cordova's API call
+      return function(){
+        console.log("Cordova has paused the game");
+console.log(game);
+        if( game.state.current == "play" ){//if play state is active, call the play state's pause function (which will alter the UI)
+console.log(game);
+          game.state.states.play.pauseGame(); //call the play state's pauseGame function
+  console.log(game);
+          game.state.states.play.saveGameState();
+  console.log(game);
+        }
+console.log(game);
+
+        game.paused = true; //pause the game last (since previous functions may modify the game or UI)
+console.log(game);
+      }
+    },
+    onResumeByCordova: function(game){
+      return function(){
+        console.log("Cordova has resumed the game");
+
+        if( game.state.current != "play" ){//if play state is NOT active, avoid resuming the game (allow the user to resume it)
+          game.paused = false; //actually resume the game
+        }
+      }
+    }
+  }
+
+module.exports = Cordova_Api_Manager;
+
+},{}],2:[function(require,module,exports){
 'use strict';
 
 //global variables
@@ -12,10 +79,14 @@ window.onload = function () {
   game.state.add('preload', require('./states/preload'));
   
 
+  //Call to use Cordova APIs. CordovaHelper will take care of everything.
+  var CordovaHelper = require('../assets/Cordova_Api_Manager');//this is the path to access assets from the build ('dist') folder
+  document.addEventListener("deviceready", new CordovaHelper().cordovaDeviceReady(game), false);
+
   game.state.start('boot');
 };
 
-},{"./states/boot":5,"./states/gameover":6,"./states/menu":7,"./states/play":8,"./states/preload":9}],2:[function(require,module,exports){
+},{"../assets/Cordova_Api_Manager":1,"./states/boot":6,"./states/gameover":7,"./states/menu":8,"./states/play":9,"./states/preload":10}],3:[function(require,module,exports){
 'use strict';
 
 
@@ -100,7 +171,7 @@ Object.defineProperty(PieProgress.prototype, 'progress', {
 
 module.exports = PieProgress;
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 
 var drag_value = 70;
@@ -230,7 +301,7 @@ Protagonist.prototype.handlePlayerMovement = function(){
 
 module.exports = Protagonist;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 
 var num_enemy_spritesheets = 25;
@@ -323,7 +394,7 @@ Sideways_enemy.prototype.chooseRandomSpriteSheet = function(){
 
 module.exports = Sideways_enemy;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 
 'use strict';
 
@@ -379,7 +450,7 @@ Boot.prototype = {
 
 module.exports = Boot;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 
 'use strict';
 function GameOver() {}
@@ -456,7 +527,7 @@ GameOver.prototype = {
 };
 module.exports = GameOver;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 
 'use strict';
 function Menu() {}
@@ -507,15 +578,15 @@ Menu.prototype = {
     this.maxScore.width = Math.min(this.maxScore.width, window.innerWidth);
     this.instructionsText.width = Math.min(this.instructionsText.width, window.innerWidth);
 
-/*  Does not work
-    //ensure the entire menu is not too tall for the screen
-    this.menu = game.add.group();
-    this.menu.add(this.titleText);
-    this.menu.add(this.sprite);
-    this.menu.add(this.maxScore);
-    this.menu.add(this.instructionsText);
-    this.menu.height = Math.min(this.menu.height, window.innerHeight);
-*/
+  /*  Does not work
+      //ensure the entire menu is not too tall for the screen
+      this.menu = game.add.group();
+      this.menu.add(this.titleText);
+      this.menu.add(this.sprite);
+      this.menu.add(this.maxScore);
+      this.menu.add(this.instructionsText);
+      this.menu.height = Math.min(this.menu.height, window.innerHeight);
+  */
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {
@@ -526,7 +597,7 @@ Menu.prototype = {
 
 module.exports = Menu;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 
   'use strict';
   //required modules (classes) with the help of browserify
@@ -538,6 +609,7 @@ module.exports = Menu;
   var pause_icon_length = 36;
 
   function Play() {}
+
   Play.prototype = {
     create: function() {
       this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -595,18 +667,6 @@ module.exports = Menu;
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
-
-
-
-      // Setup Cordova, as its device APIs are available
-      var onPauseFunc = this.onPauseByCordova;//save references, so that they can be accessed within document's EventListener function
-      var play_context = this;
-      document.addEventListener("deviceready", function() {
-        console.log("CORDOVA DEVICE APIS READY AND AVAILABLE2222222");
-
-        document.addEventListener("pause", onPauseFunc(play_context), false);
-      },
-      false);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -616,6 +676,14 @@ module.exports = Menu;
         this.pause_text.visible = true; //open 'pause menu'
 
         this.game.paused = true; //actually pause the game
+      }
+    },
+    saveGameState: function(){
+      //save the game's state to local storage
+      if( typeof(Storage) !== "undefined") {
+          localStorage["level"] = this.game.global.level;
+          localStorage["currentGameScore"] = this.game.global.score;
+          localStorage["currentGameScoreBuffer"] = this.game.global.scoreBuffer;
       }
     },
     resumeGame: function(){
@@ -702,28 +770,13 @@ module.exports = Menu;
           this.game.add.existing(enemy); //must add to game before adding to group
           this.enemies.add(enemy);
         }
-    },
-    //Function to be called when Cordova senses a 'pause' event (another application takes foreground). Saves the state of the game
-    onPauseByCordova: function(play_context){
-      //the actual onPause function used by cordova. It cannot have parameters, but needs a way to reference the game to make changes.
-      //So use the super function parameter and return a parameter-less function! Complicated I know...
-      return function(){
-        console.log("Cordova has paused the game");
-        play_context.pauseGame();
-
-        if( typeof(Storage) !== "undefined") {
-            localStorage["level"] = play_context.game.global.level;
-            localStorage["currentGameScore"] = play_context.game.global.score;
-            localStorage["currentGameScoreBuffer"] = play_context.game.global.scoreBuffer;
-        }
-      }
     }
 
   };
 
   module.exports = Play;
 
-},{"../prefabs/PieProgress":2,"../prefabs/Protagonist":3,"../prefabs/Sideways_enemy":4}],9:[function(require,module,exports){
+},{"../prefabs/PieProgress":3,"../prefabs/Protagonist":4,"../prefabs/Sideways_enemy":5}],10:[function(require,module,exports){
 
 'use strict';
 function Preload() {
@@ -809,4 +862,4 @@ Preload.prototype = {
 
 module.exports = Preload;
 
-},{}]},{},[1])
+},{}]},{},[2])

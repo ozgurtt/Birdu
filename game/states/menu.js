@@ -48,15 +48,15 @@ Menu.prototype = {
     this.maxScore.width = Math.min(this.maxScore.width, window.innerWidth);
     this.instructionsText.width = Math.min(this.instructionsText.width, window.innerWidth);
 
-/*  Does not work
-    //ensure the entire menu is not too tall for the screen
-    this.menu = game.add.group();
-    this.menu.add(this.titleText);
-    this.menu.add(this.sprite);
-    this.menu.add(this.maxScore);
-    this.menu.add(this.instructionsText);
-    this.menu.height = Math.min(this.menu.height, window.innerHeight);
-*/
+  /*  Does not work
+      //ensure the entire menu is not too tall for the screen
+      this.menu = game.add.group();
+      this.menu.add(this.titleText);
+      this.menu.add(this.sprite);
+      this.menu.add(this.maxScore);
+      this.menu.add(this.instructionsText);
+      this.menu.height = Math.min(this.menu.height, window.innerHeight);
+  */
   },
   update: function() {
     if(this.game.input.activePointer.justPressed()) {
