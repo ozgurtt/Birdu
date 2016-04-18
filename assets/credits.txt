@@ -7,9 +7,11 @@ Pause Icon :: https://design.google.com/icons/index.html#ic_pause
 Play Icon :: https://design.google.com/icons/index.html#ic_play_arrow
 
 Audio:
-Bite sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
+Bite_scary sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
+Bite_friendly sound :: https://www.freesound.org/people/orginaljun/sounds/152313/
 The Plucked Bird :: http://opengameart.org/content/the-plucked-bird-nes-version
 levelup :: https://www.freesound.org/people/LittleRobotSoundFactory/sounds/270404/
+lose :: https://www.freesound.org/people/Andreas.Mustola/sounds/338277/
 
 Font:
 Paper Cuts :: http://www.dafont.com/paper-cuts.font

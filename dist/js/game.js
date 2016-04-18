@@ -432,7 +432,7 @@ Boot.prototype = {
       hero_movement_speed: 120,
       hero_sprite_number: 28,
       level: Number(localStorage["level"]) || 0,
-      level_up_hero_area: 1000, //9200
+      level_up_hero_area: 1500,
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
       text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
@@ -451,7 +451,7 @@ Boot.prototype = {
       .to({angle: 10}, 100, Phaser.Easing.Linear.None, true, 0, -1, true);
 
     this.levelup_text_grow_tween.onComplete.add(function(){
-      textObj.scale.setTo(2,2);
+      textObj.scale.setTo(1.5,1.5);
       textObj.angle = -10;
       textObj.visible = false;
       this.levelup_text_rotate_tween.stop();
@@ -682,8 +682,11 @@ module.exports = Menu;
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eating_sound = this.game.add.audio('bite');
+      this.eat_sound = this.game.add.audio('bite_friendly');
+      this.eaten_sound = this.game.add.audio('bite_scary');
       this.lose_sound = this.game.add.audio('lose');
+      this.tweet_sound = this.game.add.audio('tweet');
+      this.tweet_sound.play();
 
       //things to be shown upon leveling up
       this.levelup_sound = this.game.add.audio('levelup');
@@ -751,8 +754,6 @@ module.exports = Menu;
         }, this);
     },
     bird_collision: function (hero, enemy) {
-      this.eating_sound.play();
-
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
       var hero_area = this.game.global.area(this.hero);
@@ -760,6 +761,7 @@ module.exports = Menu;
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
+        this.eat_sound.play();
         //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
@@ -785,7 +787,8 @@ module.exports = Menu;
         }
       }
       else{
-        this.lose_sound.play();
+        this.eaten_sound.play();
+        //this.lose_sound.play();
         this.game.state.start('gameover',true,false);
       }
     },
@@ -872,8 +875,9 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //load sounds
-    this.load.audio('bite', 'assets/audio/bite.wav');
-    this.load.audio('lose', 'assets/audio/lose.wav');
+    this.load.audio('bite_friendly', 'assets/audio/bite_friendly.mp3');
+    this.load.audio('bite_scary', 'assets/audio/bite_scary.wav');
+    this.load.audio('tweet', 'assets/audio/tweet.wav');
     this.load.audio('levelup', 'assets/audio/levelup.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },

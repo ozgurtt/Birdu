@@ -66,8 +66,11 @@
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eating_sound = this.game.add.audio('bite');
+      this.eat_sound = this.game.add.audio('bite_friendly');
+      this.eaten_sound = this.game.add.audio('bite_scary');
       this.lose_sound = this.game.add.audio('lose');
+      this.tweet_sound = this.game.add.audio('tweet');
+      this.tweet_sound.play();
 
       //things to be shown upon leveling up
       this.levelup_sound = this.game.add.audio('levelup');
@@ -135,8 +138,6 @@
         }, this);
     },
     bird_collision: function (hero, enemy) {
-      this.eating_sound.play();
-
       //one of the objects is the hero, the other is a member of the 'enemies' group.
       //according to phaser docs, if one object is a sprite and the other a group, the sprite will always be the first parameter to collisionCallback function
       var hero_area = this.game.global.area(this.hero);
@@ -144,6 +145,7 @@
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
+        this.eat_sound.play();
         //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
@@ -169,7 +171,8 @@
         }
       }
       else{
-        this.lose_sound.play();
+        this.eaten_sound.play();
+        //this.lose_sound.play();
         this.game.state.start('gameover',true,false);
       }
     },
