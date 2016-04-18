@@ -67,16 +67,16 @@
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+      this.lose_sound = this.game.add.audio('lose');
 
+      //things to be shown upon leveling up
       this.levelup_sound = this.game.add.audio('levelup');
-      this.levelup_text = this.game.add.text(this.game.world.centerX,text_margin_from_side_of_screen,
+      this.levelup_text = this.game.add.text(this.game.world.centerX,0,
         "Level Up",
         this.game.global.score_font_style);
+      this.levelup_text.anchor.setTo(0.5,0.5);
+      this.levelup_text.y = text_margin_from_side_of_screen + this.levelup_text.height/2;
       this.levelup_text.visible = false;
-      //show a cool animation of "Level Up" text
-      this.levelup_text_tween = this.game.add.tween(this.levelup_text.scale).from({x:0.1, y: 0.1}, 3000, Phaser.Easing.Exponential.In, true);
-      //hide text when tween ends
-      this.levelup_text_tween.onComplete.add(function(){ this.levelup_text.visible = false; },this);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -169,6 +169,7 @@
         }
       }
       else{
+        this.lose_sound.play();
         this.game.state.start('gameover',true,false);
       }
     },

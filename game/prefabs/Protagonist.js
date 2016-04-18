@@ -72,7 +72,7 @@ Protagonist.prototype.sizeIncrease = function(enemy_area){
   var area_ratio = enemy_area / hero_area;
   var width_increase_size = base_hero_x_length_increase *  area_ratio;
 
-  width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
+  width_increase_size *= this.game.global.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
   this.setSizeFromWidth(this.width + width_increase_size);
 },
 
@@ -110,11 +110,11 @@ Protagonist.prototype.handlePlayerMovement = function(){
     }
 
     //set sprite to face the same X direction that it is moving
-    if(Math.sign(this.scale.x) != Math.sign(this.body.velocity.x) ){
+    if(this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
       this.scale.x *= -1;
     }
     //set sprite to be angled towards its movement direction a bit
-    this.angle = 15 * Math.sign(this.scale.x) * Math.sign(this.body.velocity.y);
+    this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
   }
   //NOT MOVING
   else{

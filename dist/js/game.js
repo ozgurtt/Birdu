@@ -237,7 +237,7 @@ Protagonist.prototype.sizeIncrease = function(enemy_area){
   var area_ratio = enemy_area / hero_area;
   var width_increase_size = base_hero_x_length_increase *  area_ratio;
 
-  width_increase_size *= Math.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
+  width_increase_size *= this.game.global.sign(this.width);//width can be + or -, find its sign so it increases the correct amount
   this.setSizeFromWidth(this.width + width_increase_size);
 },
 
@@ -275,11 +275,11 @@ Protagonist.prototype.handlePlayerMovement = function(){
     }
 
     //set sprite to face the same X direction that it is moving
-    if(Math.sign(this.scale.x) != Math.sign(this.body.velocity.x) ){
+    if(this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
       this.scale.x *= -1;
     }
     //set sprite to be angled towards its movement direction a bit
-    this.angle = 15 * Math.sign(this.scale.x) * Math.sign(this.body.velocity.y);
+    this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
   }
   //NOT MOVING
   else{
@@ -404,15 +404,21 @@ Boot.prototype = {
       getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min)) + min;
       },
+      //sign (+ or -) of a number. Chromium and some browsers do not have this built in, add it here for better compatibility
+      sign: function(x){
+        if( +x === x ) { // check if a number was given
+            return (x === 0) ? x : (x > 0) ? 1 : -1;
+        }
+        return NaN;
+      },
       levelUp: function(game,hero,enemies){
         this.level ++;
 
         game.state.states.play.levelup_sound.play();
-        game.state.states.play.levelup_text.visible = true;
-        game.state.states.play.levelup_text_tween.start();
+        game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
-        var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * Math.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
+        var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * this.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
         shrinkToOriginalSize.start();
 
         this.hero_movement_speed = Math.min(225,this.hero_movement_speed + 20);
@@ -426,13 +432,30 @@ Boot.prototype = {
       hero_movement_speed: 120,
       hero_sprite_number: 28,
       level: Number(localStorage["level"]) || 0,
-      level_up_hero_area: 1000,
+      level_up_hero_area: 1000, //9200
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
       text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
-      score_font_style:{font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10}
+      score_font_style:{ font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10}
     };
+  },
+  playLevelUpTweens: function(game,textObj){
+    textObj.scale.setTo(2,2);
+    textObj.angle = -10;
+    textObj.visible = true;
 
+    //tween in the level up text, and hide + reset it on completion
+    this.levelup_text_grow_tween = game.add.tween(textObj.scale)
+      .from({x:0.1, y: 0.1}, 1000, Phaser.Easing.Linear.None, true)
+    this.levelup_text_rotate_tween = game.add.tween(textObj)
+      .to({angle: 10}, 100, Phaser.Easing.Linear.None, true, 0, -1, true);
+
+    this.levelup_text_grow_tween.onComplete.add(function(){
+      textObj.scale.setTo(2,2);
+      textObj.angle = -10;
+      textObj.visible = false;
+      this.levelup_text_rotate_tween.stop();
+    },this);
   },
   create: function() {
     //start preload game state
@@ -660,16 +683,16 @@ module.exports = Menu;
 
       //load audio
       this.eating_sound = this.game.add.audio('bite');
+      this.lose_sound = this.game.add.audio('lose');
 
+      //things to be shown upon leveling up
       this.levelup_sound = this.game.add.audio('levelup');
-      this.levelup_text = this.game.add.text(this.game.world.centerX,text_margin_from_side_of_screen,
+      this.levelup_text = this.game.add.text(this.game.world.centerX,0,
         "Level Up",
         this.game.global.score_font_style);
+      this.levelup_text.anchor.setTo(0.5,0.5);
+      this.levelup_text.y = text_margin_from_side_of_screen + this.levelup_text.height/2;
       this.levelup_text.visible = false;
-      //show a cool animation of "Level Up" text
-      this.levelup_text_tween = this.game.add.tween(this.levelup_text.scale).from({x:0.1, y: 0.1}, 3000, Phaser.Easing.Exponential.In, true);
-      //hide text when tween ends
-      this.levelup_text_tween.onComplete.add(function(){ this.levelup_text.visible = false; },this);
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -762,6 +785,7 @@ module.exports = Menu;
         }
       }
       else{
+        this.lose_sound.play();
         this.game.state.start('gameover',true,false);
       }
     },
@@ -849,6 +873,7 @@ Preload.prototype = {
 
     //load sounds
     this.load.audio('bite', 'assets/audio/bite.wav');
+    this.load.audio('lose', 'assets/audio/lose.wav');
     this.load.audio('levelup', 'assets/audio/levelup.wav');
     this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
   },
