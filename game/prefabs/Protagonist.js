@@ -145,7 +145,6 @@ Protagonist.prototype.setLookingDirection = function(){
   }
   //set sprite to be angled towards its movement direction a bit
   this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
-  console.log(this.body.velocity.x);
 }
 
 module.exports = Protagonist;

@@ -37,7 +37,6 @@ Cordova_Api_Manager.prototype = {
 
         if( game.state.current == "play" ){//if play state is active, call the play state's pause function (which will alter the UI)
           game.state.states.play.pauseGame(); //call the play state's pauseGame function
-          game.state.states.play.saveGameState();
         }
 
         game.paused = true; //pause the game last (since previous functions may modify the game or UI)
@@ -310,7 +309,6 @@ Protagonist.prototype.setLookingDirection = function(){
   }
   //set sprite to be angled towards its movement direction a bit
   this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
-  console.log(this.body.velocity.x);
 }
 
 module.exports = Protagonist;
