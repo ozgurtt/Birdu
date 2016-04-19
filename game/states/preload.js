@@ -64,11 +64,11 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //load sounds
-    this.load.audio('bite_friendly', 'assets/audio/bite_friendly.mp3');
+    this.load.audio('bite_friendly', 'assets/audio/bite_friendly.wav');
     this.load.audio('bite_scary', 'assets/audio/bite_scary.wav');
     this.load.audio('tweet', 'assets/audio/tweet.wav');
     this.load.audio('levelup', 'assets/audio/levelup.wav');
-    this.load.audio('background-music', 'assets/audio/the_plucked_bird.mp3');
+    this.load.audio('background-music', 'assets/audio/the_plucked_bird.wav');
   },
   create: function() {
     this.loading_bar.cropEnabled = false;
