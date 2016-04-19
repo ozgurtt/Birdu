@@ -258,8 +258,25 @@ Protagonist.prototype.handlePlayerMovement = function(){
     prev_pointer.reachedPrevPointer = false;
   }
 
+  //user is pressing the keyboard
+  if(this.game.input.keyboard.isDown(Phaser.Keyboard.UP)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) ){
+    prev_pointer.reachedPrevPointer = true; //turn off last mouse/tap movement
+
+    //We know user is pressing up, down, left, or right. Check which on it is and adjust accordingly
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)){         this.body.velocity.y = -this.game.global.hero_movement_speed; } //Up
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){  this.body.velocity.y = this.game.global.hero_movement_speed;  } //Down
+    else{ this.body.gravity.y = 0; } //moving horizontally. Set gravity to 0
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){this.body.velocity.x = this.game.global.hero_movement_speed; }  //Right
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){ this.body.velocity.x = -this.game.global.hero_movement_speed;  }//Left
+
+    this.setLookingDirection();
+  }
   //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
-  if ( !prev_pointer.reachedPrevPointer ){
+  else if ( !prev_pointer.reachedPrevPointer ){
     //set to true when hero is approx at his destination (prev pointer's (x,y)
     var pixel_margin_around_pointer_destination_goal = 2;
     prev_pointer.reachedPrevPointer =
@@ -274,21 +291,27 @@ Protagonist.prototype.handlePlayerMovement = function(){
       this.game.physics.arcade.moveToXY(this, prev_pointer.x, prev_pointer.y, this.game.global.hero_movement_speed);
     }
 
-    //set sprite to face the same X direction that it is moving
-    if(this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
-      this.scale.x *= -1;
-    }
-    //set sprite to be angled towards its movement direction a bit
-    this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
+    this.setLookingDirection();
   }
   //NOT MOVING
   else{
-      this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
-      this.angle = 0;
+    this.body.gravity.y = grav_value;
+    this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
+    this.angle = 0;
   }
 
 }
 
+Protagonist.prototype.setLookingDirection = function(){
+  //set sprite to face the same X direction that it is moving
+  if(Math.abs(this.body.velocity.x) > 0 &&//need to check for zero in case user moves straight up/down
+    this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
+    this.scale.x *= -1;
+  }
+  //set sprite to be angled towards its movement direction a bit
+  this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
+  console.log(this.body.velocity.x);
+}
 
 module.exports = Protagonist;
 
@@ -432,7 +455,7 @@ Boot.prototype = {
       hero_movement_speed: 120,
       hero_sprite_number: 28,
       level: Number(localStorage["level"]) || 0,
-      level_up_hero_area: 2000,
+      level_up_hero_area: 9200,
       original_hero_scale: .3,
       default_time_btw_enemy_spawns: Phaser.Timer.SECOND * .4,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
@@ -670,6 +693,15 @@ module.exports = Menu;
       //hero/player! Create last so he appears over top of other elements
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
+      // Prevent directions key events bubbling up to browser,
+      // since these keys will make web page scroll which is not
+      // expected. These inputs can be used by the protagonist prefab
+      this.game.input.keyboard.addKeyCapture([
+          Phaser.Keyboard.LEFT,
+          Phaser.Keyboard.RIGHT,
+          Phaser.Keyboard.UP,
+          Phaser.Keyboard.DOWN
+      ]);
 
       //load the pause menu (just some text in this game) after the hero, so that it appears over top
       this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", this.game.global.score_font_style);
@@ -806,11 +838,10 @@ module.exports = Menu;
 
         //make birds spawn a little less frequently as their size increases. Put this last, as things above may shrink/grow the hero
         this.enemyGenerator.delay = this.enemySpawnDelay();
-        console.log(this.enemyGenerator.delay);
       }
       else{
         this.eaten_sound.play();
-        //this.game.state.start('gameover',true,false);
+        this.game.state.start('gameover',true,false);
       }
     },
     enemySpawnDelay(){
@@ -841,7 +872,7 @@ module.exports = Menu;
         }, this);
 
         //Tween this score/combo label to the total score label
-        var scoreTween = this.add.tween(comboText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true);
+        var scoreTween = this.add.tween(comboText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true,800);
         //When the animation finishes, destroy this score/combo label, trigger the total score labels animation and add the score
         scoreTween.onComplete.add(function(){
             comboText.destroy();

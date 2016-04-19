@@ -52,6 +52,15 @@
       //hero/player! Create last so he appears over top of other elements
       this.hero = new Protagonist(this.game, 100, this.game.height/2);
       this.game.add.existing(this.hero);
+      // Prevent directions key events bubbling up to browser,
+      // since these keys will make web page scroll which is not
+      // expected. These inputs can be used by the protagonist prefab
+      this.game.input.keyboard.addKeyCapture([
+          Phaser.Keyboard.LEFT,
+          Phaser.Keyboard.RIGHT,
+          Phaser.Keyboard.UP,
+          Phaser.Keyboard.DOWN
+      ]);
 
       //load the pause menu (just some text in this game) after the hero, so that it appears over top
       this.pause_text = this.game.add.text(this.game.world.centerX, this.game.world.centerY, "Paused", this.game.global.score_font_style);
@@ -222,7 +231,7 @@
         }, this);
 
         //Tween this score/combo label to the total score label
-        var scoreTween = this.add.tween(comboText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true);
+        var scoreTween = this.add.tween(comboText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true,800);
         //When the animation finishes, destroy this score/combo label, trigger the total score labels animation and add the score
         scoreTween.onComplete.add(function(){
             comboText.destroy();

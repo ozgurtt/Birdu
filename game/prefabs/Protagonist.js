@@ -93,8 +93,25 @@ Protagonist.prototype.handlePlayerMovement = function(){
     prev_pointer.reachedPrevPointer = false;
   }
 
+  //user is pressing the keyboard
+  if(this.game.input.keyboard.isDown(Phaser.Keyboard.UP)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)
+  || this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) ){
+    prev_pointer.reachedPrevPointer = true; //turn off last mouse/tap movement
+
+    //We know user is pressing up, down, left, or right. Check which on it is and adjust accordingly
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP)){         this.body.velocity.y = -this.game.global.hero_movement_speed; } //Up
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){  this.body.velocity.y = this.game.global.hero_movement_speed;  } //Down
+    else{ this.body.gravity.y = 0; } //moving horizontally. Set gravity to 0
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){this.body.velocity.x = this.game.global.hero_movement_speed; }  //Right
+    else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){ this.body.velocity.x = -this.game.global.hero_movement_speed;  }//Left
+
+    this.setLookingDirection();
+  }
   //move hero towards his desired destination (if he has one made from a click/tap), and turn it off when he reaches it
-  if ( !prev_pointer.reachedPrevPointer ){
+  else if ( !prev_pointer.reachedPrevPointer ){
     //set to true when hero is approx at his destination (prev pointer's (x,y)
     var pixel_margin_around_pointer_destination_goal = 2;
     prev_pointer.reachedPrevPointer =
@@ -109,20 +126,26 @@ Protagonist.prototype.handlePlayerMovement = function(){
       this.game.physics.arcade.moveToXY(this, prev_pointer.x, prev_pointer.y, this.game.global.hero_movement_speed);
     }
 
-    //set sprite to face the same X direction that it is moving
-    if(this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
-      this.scale.x *= -1;
-    }
-    //set sprite to be angled towards its movement direction a bit
-    this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
+    this.setLookingDirection();
   }
   //NOT MOVING
   else{
-      this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
-      this.angle = 0;
+    this.body.gravity.y = grav_value;
+    this.animations.getAnimation('idling').speed = this.game.global.fps_of_flapping_sprites;
+    this.angle = 0;
   }
 
 }
 
+Protagonist.prototype.setLookingDirection = function(){
+  //set sprite to face the same X direction that it is moving
+  if(Math.abs(this.body.velocity.x) > 0 &&//need to check for zero in case user moves straight up/down
+    this.game.global.sign(this.scale.x) != this.game.global.sign(this.body.velocity.x) ){
+    this.scale.x *= -1;
+  }
+  //set sprite to be angled towards its movement direction a bit
+  this.angle = 15 * this.game.global.sign(this.scale.x) * this.game.global.sign(this.body.velocity.y);
+  console.log(this.body.velocity.x);
+}
 
 module.exports = Protagonist;
