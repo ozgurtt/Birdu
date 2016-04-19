@@ -80,6 +80,11 @@
       this.levelup_text.anchor.setTo(0.5,0.5);
       this.levelup_text.y = text_margin_from_side_of_screen + this.levelup_text.height/2;
       this.levelup_text.visible = false;
+
+      //combo variables
+      this.combo_original_bird_score = 0; //score that is added by eating birds in a combo series. Nothing added from the combo itself
+      this.combo_count = 0;
+      this.combo_timer = null;
     },
     pauseGame: function() {
       console.log('Gameplay has paused');
@@ -88,7 +93,7 @@
 
         this.pause_text.visible = true; //open 'pause menu'
 
-        this.saveGameState();
+        //this.saveGameState();
 
         this.game.paused = true; //actually pause the game
       }
@@ -122,17 +127,17 @@
       }
     },
     //function to create an cool animating score, which will travel up to the player's total score, and disappear.
-    createScoreAnimation: function(x, y, score){
+    createScoreAnimation: function(score){
         //Create a new label for the score
-        var scoreAnimation = this.game.add.text(x, y, score.toString(), {font: "15px papercuts", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4});
-        scoreAnimation.anchor.setTo(0.5, 0);
+        var scoreAnimationText = this.game.add.text(this.hero.x, this.hero.y, score.toString(), this.game.global.score_animating_font_style);
+        scoreAnimationText.anchor.setTo(0.5, 0);
 
         //Tween this score label to the total score label
-        var scoreTween = this.game.add.tween(scoreAnimation).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true);
+        var scoreTween = this.add.tween(scoreAnimationText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true);
 
         //When the animation finishes, destroy this score label, trigger the total score labels animation and add the score
         scoreTween.onComplete.add(function(){
-            scoreAnimation.destroy();
+            scoreAnimationText.destroy();
             this.scoreLabelTween.start();
             this.game.global.scoreBuffer += score;
         }, this);
@@ -153,8 +158,19 @@
           Phaser.Easing.Linear.In).to({ x: this.hero.scale.x, y: this.hero.scale.y}, 75, Phaser.Easing.Linear.In);
         this.eatingTween.start();
 
-        //show this meal's score travel up towards total score
-        this.createScoreAnimation(this.hero.x,this.hero.y,Math.round(Math.sqrt(enemy_area)));
+        //show this meal's score travel up towards total score. add it to current combo
+        var score_increase = Math.round(Math.sqrt(enemy_area));
+        this.createScoreAnimation(score_increase);
+
+        //increase combo and score amount. (Re)start the end-of-combo timer as needed
+        this.combo_original_bird_score += score_increase;
+        this.combo_count += 1;
+        if( this.combo_timer ){//true if it is not null. Thus a timer is already running
+          this.game.time.events.remove(this.combo_timer);//stop previous timer from firing the 'completedCombo' events
+          this.combo_timer = this.game.time.events.add(Phaser.Timer.SECOND, this.completedCombo, this);//restart the timer
+        }else{
+          this.combo_timer = this.game.time.events.add(Phaser.Timer.SECOND, this.completedCombo, this);
+        }
 
         //removes the enemy hero collides with, makes enemy availble for recycling
         enemy.exists = false;
@@ -175,6 +191,35 @@
         //this.lose_sound.play();
         this.game.state.start('gameover',true,false);
       }
+    },
+    //Create cool text+tweens for displaying number of combos+how much score it added, then add that score to total
+    completedCombo: function(){
+      var score_combo_adds = Math.round(this.combo_original_bird_score * (1+this.combo_count / 10.0) - this.combo_original_bird_score);
+
+      //Create a new label for displaying how many combos the user got
+      var comboText = this.game.add.text(this.hero.x, this.hero.y,
+        "Combo x"+this.combo_count.toString(), this.game.global.score_animating_font_style);
+      comboText.anchor.setTo(0.5, 0);
+      //show the number of combos for a little while. After that delay, show a growing/shrinking tween
+      var display_combo_score = this.add.tween(comboText.scale).to({ x: 1.1, y: 1.1}, 200, Phaser.Easing.Linear.In).to({ x: 1, y: 1}, 200, Phaser.Easing.Linear.In,5000)
+      //change the text to the score the combo added when first tween starts
+      display_combo_score.onComplete.add(function(){
+          comboText.setText(score_combo_adds);
+      }, this);
+
+      //Tween this score/combo label to the total score label
+      var scoreTween = this.add.tween(comboText).to({x:this.scoreLabel.x, y: this.scoreLabel.y}, 800, Phaser.Easing.Exponential.In, true);
+      //When the animation finishes, destroy this score/combo label, trigger the total score labels animation and add the score
+      scoreTween.onComplete.add(function(){
+          comboText.destroy();
+          this.scoreLabelTween.start();
+          this.game.global.scoreBuffer += score_combo_adds;
+      }, this);
+
+      //reset combo stats and set the timer to null (it has already completed [hence we're in this function], so we do not need to remove it from events queue)
+      this.combo_original_bird_score = 0;
+      this.combo_count = 0;
+      this.combo_timer = null;
     },
     generateEnemy: function() { //generate new pipes, recycling if possible
         var enemy = this.enemies.getFirstExists(false);//attempts to get the first element from a group that has its 'exists' property set to false.

@@ -48,7 +48,8 @@ Boot.prototype = {
       original_hero_scale: .3,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
       text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
-      score_font_style:{ font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10}
+      score_font_style:{ font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10},
+      score_animating_font_style:{font: "15px papercuts", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4}
     };
   },
   playLevelUpTweens: function(game,textObj){
