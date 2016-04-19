@@ -46,6 +46,7 @@ Boot.prototype = {
       level: Number(localStorage["level"]) || 0,
       level_up_hero_area: 9200,
       original_hero_scale: .3,
+      default_time_btw_enemy_spawns: Phaser.Timer.SECOND * .4,
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
       text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
       score_font_style:{ font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10},
