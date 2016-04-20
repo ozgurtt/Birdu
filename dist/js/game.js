@@ -842,7 +842,7 @@ module.exports = Menu;
         this.game.state.start('gameover',true,false);
       }
     },
-    enemySpawnDelay(){
+    enemySpawnDelay: function(){
       var hero_area_ratio = this.game.global.area(this.hero) / this.game.global.level_up_hero_area;
 
       //hero's area is >= to level_up_hero_area. Thus he has leveled up, and the tween has not yet ran and reduced his size back to original. Jut set it to original
