@@ -856,7 +856,7 @@ module.exports = Menu;
     //Create cool text+tweens for displaying number of combos+how much score it added, then add that score to total
     completedCombo: function(){
       if(this.combo_count > 1){
-        var score_combo_adds = Math.round(this.combo_original_bird_score * (1+this.combo_count / 10.0) - this.combo_original_bird_score);
+        var score_combo_adds = Math.round(this.combo_original_bird_score * (this.combo_count / 10.0) );
 
         //Create a new label for displaying how many combos the user got
         var comboText = this.game.add.text(this.hero.x, this.hero.y,
