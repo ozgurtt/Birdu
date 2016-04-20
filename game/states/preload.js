@@ -63,12 +63,22 @@ Preload.prototype = {
     this.load.image('pause', 'assets/icon_pause.png');
     this.load.image('background', 'assets/background.png');
 
-    //load sounds
-    this.load.audio('bite_friendly', 'assets/audio/bite_friendly.wav');
-    this.load.audio('bite_scary', 'assets/audio/bite_scary.wav');
-    this.load.audio('tweet', 'assets/audio/tweet.wav');
-    this.load.audio('levelup', 'assets/audio/levelup.wav');
-    this.load.audio('background-music', 'assets/audio/the_plucked_bird.wav');
+    //load sounds - the second parameter is an array containing the same audio file but in different formats.
+    this.load.audio('bite_friendly', this.arrayOfCompatibleMusicFileNames('bite_friendly') );
+    this.load.audio('bite_scary', this.arrayOfCompatibleMusicFileNames('bite_scary') );
+    this.load.audio('tweet', this.arrayOfCompatibleMusicFileNames('tweet') );
+    this.load.audio('levelup', this.arrayOfCompatibleMusicFileNames('levelup') );
+    this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
+  },
+  //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
+  //for this game I utilized wav, ogg, and mp3 (in that order)
+  arrayOfCompatibleMusicFileNames: function(key){
+    var aud = 'assets/audio/'
+    var wav = aud + 'wav/';
+    var ogg = aud + 'ogg/';
+    var mp3 = aud + 'mp3/';
+
+    return [wav+key+".wav",ogg+key+".ogg",mp3+key+".mp3"]
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

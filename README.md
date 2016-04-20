@@ -73,4 +73,5 @@ cordova run android
 cordova build --release android
 
 #it helps to run this in Android studio, instead of the command line (for the logcat messages). Follow the instructions under "Opening a Project in Android Studio": https://cordova.apache.org/docs/en/6.x/guide/platforms/android/
+#Also, if you want to run Android Virtual Devices then you may need KVM - https://help.ubuntu.com/community/KVM/Installation
 ```
