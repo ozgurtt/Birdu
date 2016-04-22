@@ -26,7 +26,7 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        game.state.states.play.levelup_sound.play();
+        game.audio.levelup.play();
         game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
@@ -38,6 +38,7 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      use_cordova_media_plugin: (typeof window.plugins.NativeAudio != "undefined"), //if this app is built with cordova, I will be using cordova-media-plugin, as old devices do not support 'new Audio()'.
       fps_of_flapping_sprites: 9,
       score: Number(localStorage["currentGameScore"]) || 0,
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,

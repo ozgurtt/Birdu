@@ -64,24 +64,63 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //load sounds - the second parameter is an array containing the same audio file but in different formats.
-    this.load.audio('bite_friendly', this.arrayOfCompatibleMusicFileNames('bite_friendly') );
-    this.load.audio('bite_scary', this.arrayOfCompatibleMusicFileNames('bite_scary') );
-    this.load.audio('tweet', this.arrayOfCompatibleMusicFileNames('tweet') );
-    this.load.audio('levelup', this.arrayOfCompatibleMusicFileNames('levelup') );
-    this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
+    if( !this.game.global.use_cordova_media_plugin ){
+      this.load.audio('bite_friendly', this.arrayOfCompatibleMusicFileNames('bite_friendly') );
+      this.load.audio('bite_scary', this.arrayOfCompatibleMusicFileNames('bite_scary') );
+      this.load.audio('tweet', this.arrayOfCompatibleMusicFileNames('tweet') );
+      this.load.audio('levelup', this.arrayOfCompatibleMusicFileNames('levelup') );
+      this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
+    }else{
+      window.plugins.NativeAudio.preloadSimple('bite_friendly', this.arrayOfCompatibleMusicFileNames('bite_friendly')[0] );
+      window.plugins.NativeAudio.preloadSimple('bite_scary', this.arrayOfCompatibleMusicFileNames('bite_scary')[0] );
+      window.plugins.NativeAudio.preloadSimple('tweet', this.arrayOfCompatibleMusicFileNames('tweet')[0] );
+      window.plugins.NativeAudio.preloadSimple('levelup', this.arrayOfCompatibleMusicFileNames('levelup')[0] );
+      window.plugins.NativeAudio.preloadComplex('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird')[0] );
+    }
   },
   //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
   //for this game I utilized wav, ogg, and mp3 (in that order)
   arrayOfCompatibleMusicFileNames: function(key){
-    var aud = 'assets/audio/'
-    var wav = aud + 'wav/';
-    var ogg = aud + 'ogg/';
-    var mp3 = aud + 'mp3/';
+    //old versions of android don't play music, they require an absolute pathname (instead of relative). This is a generic solution
+    //http://stackoverflow.com/questions/4438822/playing-local-sound-in-phonegap?lq=1
+    var path = window.location.pathname;
+    path = path.substr( 0, path.lastIndexOf("/")+1 ); //need to remove 'index.html' from the end of pathname
+    var aud = path+'assets/audio/';
 
-    return [wav+key+".wav",ogg+key+".ogg",mp3+key+".mp3"]
+    //aud = '/android_res/raw/'
+    var wav = aud + 'wav/' + key + ".wav";
+    var ogg = aud + 'ogg/' + key + ".ogg";
+
+    return [ogg,wav];
   },
   create: function() {
     this.loading_bar.cropEnabled = false;
+
+    //set up sound file callbacks, once preloader has finished. If desktop, then can use phaser loading system. Old versions of Android (with Cordova) do not support this though, so use Cordova plug-in
+    if( !this.game.global.use_cordova_media_plugin ){
+      this.game.audio = {
+        bite_friendly: this.game.add.audio('bite_friendly'),
+        bite_scary: this.game.add.audio('bite_scary'),
+        tweet: this.game.add.audio('tweet'),
+        levelup: this.game.add.audio('levelup'),
+        background_music: this.game.add.audio('background-music')
+      };
+    }else{
+      var game = this.game;
+      var background_loop = function(status) {
+          if( status==Media.MEDIA_STOPPED ) {
+              game.audio.background_music.play();
+          }
+      };
+
+      this.game.audio = {
+        bite_friendly: new Media( this.arrayOfCompatibleMusicFileNames('bite_friendly')[0] ),
+        bite_scary: new Media( this.arrayOfCompatibleMusicFileNames('bite_scary')[0] ),
+        tweet: new Media( this.arrayOfCompatibleMusicFileNames('tweet')[0] ),
+        levelup: new Media( this.arrayOfCompatibleMusicFileNames('levelup')[0] ),
+        background_music: new Media( this.arrayOfCompatibleMusicFileNames('the_plucked_bird')[0],null,null,background_loop )
+      };
+    }
   },
   update: function() {
     if(!!this.ready) {

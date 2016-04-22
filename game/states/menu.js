@@ -40,8 +40,11 @@ Menu.prototype = {
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
-    this.background_music = this.game.add.audio('background-music');
-    this.background_music.loopFull(0.5);
+    if(this.game.global.use_cordova_media_plugin){
+      this.game.audio.background_music.play();
+    }else{
+      this.game.audio.background_music.loopFull(0.5);
+    }
 
     //ensure that no text is too wide for the screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);

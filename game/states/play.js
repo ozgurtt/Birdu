@@ -75,14 +75,9 @@
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eat_sound = this.game.add.audio('bite_friendly');
-      this.eaten_sound = this.game.add.audio('bite_scary');
-      this.lose_sound = this.game.add.audio('lose');
-      this.tweet_sound = this.game.add.audio('tweet');
-      this.tweet_sound.play();
+      this.game.audio.tweet.play();
 
       //things to be shown upon leveling up
-      this.levelup_sound = this.game.add.audio('levelup');
       this.levelup_text = this.game.add.text(this.game.world.centerX,0,
         "Level Up",
         this.game.global.score_font_style);
@@ -101,6 +96,13 @@
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
         this.pause_text.visible = true; //open 'pause menu'
+
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.pause();
+          }
+        }
 
         //this.saveGameState();
 
@@ -122,6 +124,13 @@
         this.pause_text.visible = false;
 
         this.game.paused = false;
+
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.play();
+          }
+        }
       }
     },
     update: function() {
@@ -159,7 +168,7 @@
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        this.eat_sound.play();
+        this.game.audio.bite_friendly.play();
         //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
@@ -199,7 +208,7 @@
         this.enemyGenerator.delay = this.enemySpawnDelay();
       }
       else{
-        this.eaten_sound.play();
+        this.game.audio.bite_scary.play();
         this.game.state.start('gameover',true,false);
       }
     },

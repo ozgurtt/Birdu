@@ -414,22 +414,6 @@ function Boot() {}
 
 Boot.prototype = {
   preload: function() {
-    console.log(window.location.pathname);
-      console.log(window.location.pathname);
-        console.log(window.location.pathname);
-          console.log(window.location.pathname);
-            console.log(window.location.pathname);
-              console.log(window.location.pathname);
-                console.log(window.location.pathname);
-                  console.log(window.location.pathname);
-                    console.log(window.location.pathname);
-                      console.log(window.location.pathname);
-                        console.log(window.location.pathname);
-                          console.log(window.location.pathname);
-                            console.log(window.location.pathname);
-                              console.log(window.location.pathname);
-                                console.log(window.location.pathname);
-                                  console.log(window.location.pathname);
     this.load.image('preloader', 'assets/preloader.gif');
 
     //force game to fill up screen
@@ -451,7 +435,7 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        game.state.states.play.levelup_sound.play();
+        game.audio.levelup.play();
         game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
@@ -463,6 +447,7 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      use_cordova_media_plugin: (typeof Media != "undefined"), //if this app is built with cordova, I will be using cordova-media-plugin, as old devices do not support 'new Audio()'.
       fps_of_flapping_sprites: 9,
       score: Number(localStorage["currentGameScore"]) || 0,
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
@@ -625,8 +610,11 @@ Menu.prototype = {
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
-    this.background_music = this.game.add.audio('background-music');
-    this.background_music.loopFull(0.5);
+    if(this.game.global.use_cordova_media_plugin){
+      this.game.audio.background_music.play();
+    }else{
+      this.game.audio.background_music.loopFull(0.5);
+    }
 
     //ensure that no text is too wide for the screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
@@ -730,14 +718,9 @@ module.exports = Menu;
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eat_sound = this.game.add.audio('bite_friendly');
-      this.eaten_sound = this.game.add.audio('bite_scary');
-      this.lose_sound = this.game.add.audio('lose');
-      this.tweet_sound = this.game.add.audio('tweet');
-      this.tweet_sound.play();
+      this.game.audio.tweet.play();
 
       //things to be shown upon leveling up
-      this.levelup_sound = this.game.add.audio('levelup');
       this.levelup_text = this.game.add.text(this.game.world.centerX,0,
         "Level Up",
         this.game.global.score_font_style);
@@ -756,6 +739,13 @@ module.exports = Menu;
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
         this.pause_text.visible = true; //open 'pause menu'
+
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.pause();
+          }
+        }
 
         //this.saveGameState();
 
@@ -777,6 +767,13 @@ module.exports = Menu;
         this.pause_text.visible = false;
 
         this.game.paused = false;
+
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.play();
+          }
+        }
       }
     },
     update: function() {
@@ -814,7 +811,7 @@ module.exports = Menu;
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        this.eat_sound.play();
+        this.game.audio.bite_friendly.play();
         //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
@@ -854,7 +851,7 @@ module.exports = Menu;
         this.enemyGenerator.delay = this.enemySpawnDelay();
       }
       else{
-        this.eaten_sound.play();
+        this.game.audio.bite_scary.play();
         this.game.state.start('gameover',true,false);
       }
     },
@@ -989,17 +986,54 @@ Preload.prototype = {
     this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
   },
   //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
-  //for this game I utilized wav, ogg, and mp3
+  //for this game I utilized wav, ogg, and mp3 (in that order)
   arrayOfCompatibleMusicFileNames: function(key){
-    var aud = 'assets/audio/'
-    var wav = aud + 'wav/';
-    var ogg = aud + 'ogg/';
-    var mp3 = aud + 'mp3/';
+    //old versions of android don't play music, they require an absolute pathname (instead of relative). This is a generic solution
+    //http://stackoverflow.com/questions/4438822/playing-local-sound-in-phonegap?lq=1
+    var path = window.location.pathname;
+    path = path.substr( 0, path.lastIndexOf("/")+1 ); //need to remove 'index.html' from the end of pathname
+    var aud = path+'assets/audio/';
 
-    return [wav+key+".wav",ogg+key+".ogg",mp3+key+".mp3"]
+    //aud = '/android_res/raw/'
+    var wav = aud + 'wav/' + key + ".wav";
+    var ogg = aud + 'ogg/' + key + ".ogg";
+
+    //console.log(ogg);
+    var a = new Media( ogg );
+    var b = new Media( ogg );
+    var c = new Media( ogg );
+    a.play();
+
+    return [ogg,wav];
   },
   create: function() {
     this.loading_bar.cropEnabled = false;
+
+    //set up sound file callbacks, once preloader has finished. If desktop, then can use phaser loading system. Old versions of Android (with Cordova) do not support this though, so use Cordova plug-in
+    if( !this.game.global.use_cordova_media_plugin ){
+      this.game.audio = {
+        bite_friendly: this.game.add.audio('bite_friendly'),
+        bite_scary: this.game.add.audio('bite_scary'),
+        tweet: this.game.add.audio('tweet'),
+        levelup: this.game.add.audio('levelup'),
+        background_music: this.game.add.audio('background-music')
+      };
+    }else{
+      var game = this.game;
+      var background_loop = function(status) {
+          if( status==Media.MEDIA_STOPPED ) {
+              game.audio.background_music.play();
+          }
+      };
+
+      this.game.audio = {
+        bite_friendly: new Media( this.arrayOfCompatibleMusicFileNames('bite_friendly')[0] ),
+        bite_scary: new Media( this.arrayOfCompatibleMusicFileNames('bite_scary')[0] ),
+        tweet: new Media( this.arrayOfCompatibleMusicFileNames('tweet')[0] ),
+        levelup: new Media( this.arrayOfCompatibleMusicFileNames('levelup')[0] ),
+        background_music: new Media( this.arrayOfCompatibleMusicFileNames('the_plucked_bird')[0],null,null,background_loop )
+      };
+    }
   },
   update: function() {
     if(!!this.ready) {
