@@ -1,13 +1,13 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 *
 * @overview
 *
 * Phaser - http://phaser.io
 *
-* v2.4.6 "Baerlon" - Built: Thu Feb 18 2016 14:40:18
+* v2.4.7 "Hinderstap" - Built: Fri Apr 22 2016 15:08:53
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm
 *
@@ -1227,9 +1227,10 @@ PIXI.DisplayObjectContainer.prototype.displayObjectContainerUpdateTransform = PI
  */
 PIXI.DisplayObjectContainer.prototype.getBounds = function()
 {
-    if(this.children.length === 0)return PIXI.EmptyRectangle;
-
-    // TODO the bounds have already been calculated this render session so return what we have
+    if (this.children.length === 0)
+    {
+        return PIXI.EmptyRectangle;
+    }
 
     var minX = Infinity;
     var minY = Infinity;
@@ -1243,11 +1244,14 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
 
     var childVisible = false;
 
-    for(var i=0,j=this.children.length; i<j; i++)
+    for (var i = 0; i < this.children.length; i++)
     {
         var child = this.children[i];
         
-        if(!child.visible)continue;
+        if (!child.visible)
+        {
+            continue;
+        }
 
         childVisible = true;
 
@@ -1263,8 +1267,10 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
         maxY = maxY > childMaxY ? maxY : childMaxY;
     }
 
-    if(!childVisible)
+    if (!childVisible)
+    {
         return PIXI.EmptyRectangle;
+    }
 
     var bounds = this._bounds;
 
@@ -1273,9 +1279,6 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
     bounds.width = maxX - minX;
     bounds.height = maxY - minY;
 
-    // TODO: store a reference so that if this function gets called again in the render cycle we do not have to recalculate
-    //this._currentBounds = bounds;
-   
     return bounds;
 };
 
@@ -1291,7 +1294,7 @@ PIXI.DisplayObjectContainer.prototype.getLocalBounds = function()
 
     this.worldTransform = PIXI.identityMatrix;
 
-    for(var i=0,j=this.children.length; i<j; i++)
+    for (var i = 0; i < this.children.length; i++)
     {
         this.children[i].updateTransform();
     }
@@ -1299,6 +1302,11 @@ PIXI.DisplayObjectContainer.prototype.getLocalBounds = function()
     var bounds = this.getBounds();
 
     this.worldTransform = matrixCache;
+	
+    for (i = 0; i < this.children.length; i++)
+    {
+        this.children[i].updateTransform();
+    }	
 
     return bounds;
 };
@@ -1602,6 +1610,7 @@ PIXI.Sprite.prototype.setTexture = function(texture, destroyBase)
     this.texture.baseTexture.skipRender = false;
     this.texture = texture;
     this.texture.valid = true;
+    this.cachedTint = -1;
 };
 
 /**
@@ -1619,7 +1628,15 @@ PIXI.Sprite.prototype.onTextureUpdate = function()
 };
 
 /**
-* Returns the bounds of the Sprite as a rectangle. The bounds calculation takes the worldTransform into account.
+* Returns the bounds of the Sprite as a rectangle.
+* The bounds calculation takes the worldTransform into account.
+*
+* It is important to note that the transform is not updated when you call this method.
+* So if this Sprite is the child of a Display Object which has had its transform
+* updated since the last render pass, those changes will not yet have been applied
+* to this Sprites worldTransform. If you need to ensure that all parent transforms
+* are factored into this getBounds operation then you should call `updateTransform`
+* on the root most object in this Sprites display list first.
 *
 * @method getBounds
 * @param matrix {Matrix} the transformation matrix of the sprite
@@ -1849,16 +1866,19 @@ PIXI.Sprite.prototype._renderCanvas = function(renderSession, matrix)
         var dx = (this.texture.trim) ? this.texture.trim.x - this.anchor.x * this.texture.trim.width : this.anchor.x * -this.texture.frame.width;
         var dy = (this.texture.trim) ? this.texture.trim.y - this.anchor.y * this.texture.trim.height : this.anchor.y * -this.texture.frame.height;
 
+        var tx = (wt.tx * renderSession.resolution) + renderSession.shakeX;
+        var ty = (wt.ty * renderSession.resolution) + renderSession.shakeY;
+
         //  Allow for pixel rounding
         if (renderSession.roundPixels)
         {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, (wt.tx * renderSession.resolution) | 0, (wt.ty * renderSession.resolution) | 0);
+            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx | 0, ty | 0);
             dx |= 0;
             dy |= 0;
         }
         else
         {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, wt.tx * renderSession.resolution, wt.ty * renderSession.resolution);
+            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx, ty);
         }
 
         var cw = this.texture.crop.width;
@@ -2077,8 +2097,8 @@ PIXI.SpriteBatch.prototype._renderCanvas = function(renderSession)
                                  frame.y,
                                  frame.width,
                                  frame.height,
-                                 ((child.anchor.x) * (-frame.width * child.scale.x) + child.position.x  + 0.5) | 0,
-                                 ((child.anchor.y) * (-frame.height * child.scale.y) + child.position.y  + 0.5) | 0,
+                                 ((child.anchor.x) * (-frame.width * child.scale.x) + child.position.x + 0.5 + renderSession.shakeX) | 0,
+                                 ((child.anchor.y) * (-frame.height * child.scale.y) + child.position.y + 0.5 + renderSession.shakeY) | 0,
                                  frame.width * child.scale.x,
                                  frame.height * child.scale.y);
         }
@@ -2089,16 +2109,18 @@ PIXI.SpriteBatch.prototype._renderCanvas = function(renderSession)
             child.displayObjectUpdateTransform();
            
             var childTransform = child.worldTransform;
+            var tx = (childTransform.tx * renderSession.resolution) + renderSession.shakeX;
+            var ty = (childTransform.ty * renderSession.resolution) + renderSession.shakeY;
 
             // allow for trimming
            
             if (renderSession.roundPixels)
             {
-                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, childTransform.tx | 0, childTransform.ty | 0);
+                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, tx | 0, ty | 0);
             }
             else
             {
-                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, childTransform.tx, childTransform.ty);
+                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, tx, ty);
             }
 
             context.drawImage(texture.baseTexture.source,
@@ -2212,7 +2234,7 @@ PIXI.isPowerOfTwo = function(width, height)
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -3669,6 +3691,9 @@ PIXI.WebGLRenderer.prototype.render = function(stage)
 
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
+
+    this.offset.x = this.game.camera._shake.x;
+    this.offset.y = this.game.camera._shake.y;
 
     this.renderDisplayObject(stage, this.projection);
 };
@@ -6581,10 +6606,6 @@ PIXI.CanvasRenderer = function (game) {
      */
     this.refresh = true;
 
-    //  This is already done in the Game.setUpRenderer method.
-    // this.view.width = this.width * this.resolution;
-    // this.view.height = this.height * this.resolution;
-
     /**
      * Internal var.
      *
@@ -6642,6 +6663,9 @@ PIXI.CanvasRenderer.prototype.render = function (stage) {
     this.context.globalAlpha = 1;
 
     this.renderSession.currentBlendMode = 0;
+    this.renderSession.shakeX = this.game.camera._shake.x;
+    this.renderSession.shakeY = this.game.camera._shake.y;
+
     this.context.globalCompositeOperation = 'source-over';
 
     if (navigator.isCocoonJS && this.view.screencanvas)
@@ -6673,8 +6697,8 @@ PIXI.CanvasRenderer.prototype.render = function (stage) {
  * @method destroy
  * @param [removeView=true] {boolean} Removes the Canvas element from the DOM.
  */
-PIXI.CanvasRenderer.prototype.destroy = function(removeView)
-{
+PIXI.CanvasRenderer.prototype.destroy = function (removeView) {
+
     if (removeView === undefined) { removeView = true; }
 
     if (removeView && this.view.parent)
@@ -6696,8 +6720,8 @@ PIXI.CanvasRenderer.prototype.destroy = function(removeView)
  * @param width {Number} the new width of the canvas view
  * @param height {Number} the new height of the canvas view
  */
-PIXI.CanvasRenderer.prototype.resize = function(width, height)
-{
+PIXI.CanvasRenderer.prototype.resize = function (width, height) {
+
     this.width = width * this.resolution;
     this.height = height * this.resolution;
 
@@ -6709,6 +6733,12 @@ PIXI.CanvasRenderer.prototype.resize = function(width, height)
         this.view.style.width = this.width / this.resolution + "px";
         this.view.style.height = this.height / this.resolution + "px";
     }
+
+    if (this.renderSession.smoothProperty)
+    {
+        this.context[this.renderSession.smoothProperty] = (this.renderSession.scaleMode === PIXI.scaleModes.LINEAR);
+    }
+
 };
 
 /**
@@ -7899,7 +7929,7 @@ PIXI.AbstractFilter.prototype.apply = function(frameBuffer)
 }).call(this);
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -7910,7 +7940,7 @@ PIXI.AbstractFilter.prototype.apply = function(frameBuffer)
 /* global Phaser:true */
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -7924,7 +7954,7 @@ var Phaser = Phaser || {
     * @constant
     * @type {string}
     */
-    VERSION: '2.4.6',
+    VERSION: '2.4.7',
 
     /**
     * An array of Phaser game instances.
@@ -8275,7 +8305,7 @@ var Phaser = Phaser || {
 };
 
 /**
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -8430,7 +8460,7 @@ if (!window.console)
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -8837,7 +8867,7 @@ Phaser.Utils = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -9412,7 +9442,7 @@ PIXI.Circle = Phaser.Circle;
 /**
 * @author       Richard Davey <rich@photonstorm.com>
 * @author       Chad Engler <chad@pantherdev.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -9738,7 +9768,7 @@ PIXI.Ellipse = Phaser.Ellipse;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -10383,7 +10413,7 @@ Phaser.Line.reflect = function (a, b) {
 /**
 * @author       Mat Groves http://matgroves.com/ @Doormat23
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -10772,7 +10802,7 @@ PIXI.identityMatrix = Phaser.identityMatrix;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -11680,7 +11710,7 @@ PIXI.Point = Phaser.Point;
 /**
 * @author       Richard Davey <rich@photonstorm.com>
 * @author       Adrien Brault <adrien.brault@gmail.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -11842,6 +11872,7 @@ Phaser.Polygon.prototype = {
      * - An array of Point objects: `[new Phaser.Point(x1, y1), ...]`
      * - An array of objects with public x/y properties: `[obj1, obj2, ...]`
      * - An array of paired numbers that represent point coordinates: `[x1,y1, x2,y2, ...]`
+     * - An array of arrays with two elements representing x/y coordinates: `[[x1, y1], [x2, y2], ...]`
      * - As separate Point arguments: `setTo(new Phaser.Point(x1, y1), ...)`
      * - As separate objects with public x/y properties arguments: `setTo(obj1, obj2, ...)`
      * - As separate arguments representing point coordinates: `setTo(x1,y1, x2,y2, ...)`
@@ -11874,6 +11905,10 @@ Phaser.Polygon.prototype = {
                 {
                     var p = new PIXI.Point(points[i], points[i + 1]);
                     i++;
+                }
+                else if (Array.isArray(points[i]))
+                {
+                    var p = new PIXI.Point(points[i][0], points[i][1]);
                 }
                 else
                 {
@@ -11973,7 +12008,7 @@ PIXI.Polygon = Phaser.Polygon;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -12981,7 +13016,7 @@ PIXI.EmptyRectangle = new Phaser.Rectangle(0, 0, 0, 0);
 /**
 * @author       Mat Groves http://matgroves.com/
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -13092,7 +13127,7 @@ PIXI.RoundedRectangle = Phaser.RoundedRectangle;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -13174,12 +13209,12 @@ Phaser.Camera = function (game, id, x, y, width, height) {
     this.target = null;
 
     /**
-    * @property {PIXI.DisplayObject} displayObject - The display object to which all game objects are added. Set by World.boot
+    * @property {PIXI.DisplayObject} displayObject - The display object to which all game objects are added. Set by World.boot.
     */
     this.displayObject = null;
 
     /**
-    * @property {Phaser.Point} scale - The scale of the display object to which all game objects are added. Set by World.boot
+    * @property {Phaser.Point} scale - The scale of the display object to which all game objects are added. Set by World.boot.
     */
     this.scale = null;
 
@@ -13190,7 +13225,44 @@ Phaser.Camera = function (game, id, x, y, width, height) {
     this.totalInView = 0;
 
     /**
-    * @property {Phaser.Point} _targetPosition - Internal point used to calculate target position
+    * The linear interpolation value to use when following a target.
+    * The default values of 1 means the camera will instantly snap to the target coordinates.
+    * A lower value, such as 0.1 means the camera will more slowly track the target, giving
+    * a smooth transition. You can set the horizontal and vertical values independently, and also
+    * adjust this value in real-time during your game.
+    * @property {Phaser.Point} lerp
+    * @default
+    */
+    this.lerp = new Phaser.Point(1, 1);
+
+    /**
+    * @property {Phaser.Signal} onShakeComplete - This signal is dispatched when the camera shake effect completes.
+    */
+    this.onShakeComplete = new Phaser.Signal();
+
+    /**
+    * @property {Phaser.Signal} onFlashComplete - This signal is dispatched when the camera flash effect completes.
+    */
+    this.onFlashComplete = new Phaser.Signal();
+
+    /**
+    * This signal is dispatched when the camera fade effect completes.
+    * When the fade effect completes you will be left with the screen black (or whatever
+    * color you faded to). In order to reset this call `Camera.resetFX`. This is called
+    * automatically when you change State.
+    * @property {Phaser.Signal} onFadeComplete
+    */
+    this.onFadeComplete = new Phaser.Signal();
+
+    /**
+    * The Graphics object used to handle camera fx such as fade and flash.
+    * @property {Phaser.Graphics} fx
+    * @protected
+    */
+    this.fx = null;
+
+    /**
+    * @property {Phaser.Point} _targetPosition - Internal point used to calculate target position.
     * @private
     */
     this._targetPosition = new Phaser.Point();
@@ -13208,6 +13280,32 @@ Phaser.Camera = function (game, id, x, y, width, height) {
     * @default
     */
     this._position = new Phaser.Point();
+
+    /**
+    * @property {Object} _shake - The shake effect container.
+    * @private
+    */
+    this._shake = {
+        intensity: 0,
+        duration: 0,
+        horizontal: false,
+        vertical: false,
+        shakeBounds: true,
+        x: 0,
+        y: 0
+    };
+
+    /**
+    * @property {number} _fxDuration - FX duration timer.
+    * @private
+    */
+    this._fxDuration = 0;
+
+    /**
+    * @property {number} _fxType - The FX type running.
+    * @private
+    */
+    this._fxType = 0;
 
 };
 
@@ -13235,7 +13333,54 @@ Phaser.Camera.FOLLOW_TOPDOWN = 2;
 */
 Phaser.Camera.FOLLOW_TOPDOWN_TIGHT = 3;
 
+/**
+* @constant
+* @type {number}
+*/
+Phaser.Camera.SHAKE_BOTH = 4;
+
+/**
+* @constant
+* @type {number}
+*/
+Phaser.Camera.SHAKE_HORIZONTAL = 5;
+
+/**
+* @constant
+* @type {number}
+*/
+Phaser.Camera.SHAKE_VERTICAL = 6;
+
+/**
+* @constant
+* @type {boolean}
+*/
+Phaser.Camera.ENABLE_FX = true;
+
 Phaser.Camera.prototype = {
+
+    /**
+    * Called automatically by Phaser.World.
+    *
+    * @method Phaser.Camera#boot
+    * @private
+    */
+    boot: function () {
+
+        this.displayObject = this.game.world;
+
+        this.scale = this.game.world.scale;
+
+        this.game.camera = this;
+
+        if (Phaser.Graphics && Phaser.Camera.ENABLE_FX)
+        {
+            this.fx = new Phaser.Graphics(this.game);
+
+            this.game.stage.addChild(this.fx);
+        }
+
+    },
 
     /**
     * Camera preUpdate. Sets the total view counter to zero.
@@ -13250,6 +13395,9 @@ Phaser.Camera.prototype = {
 
     /**
     * Tell the camera which sprite to follow.
+    *
+    * You can set the follow type and a linear interpolation value.
+    * Use low lerp values (such as 0.1) to automatically smooth the camera motion.
     * 
     * If you find you're getting a slight "jitter" effect when following a Sprite it's probably to do with sub-pixel rendering of the Sprite position.
     * This can be disabled by setting `game.renderer.renderSession.roundPixels = true` to force full pixel rendering.
@@ -13257,12 +13405,17 @@ Phaser.Camera.prototype = {
     * @method Phaser.Camera#follow
     * @param {Phaser.Sprite|Phaser.Image|Phaser.Text} target - The object you want the camera to track. Set to null to not follow anything.
     * @param {number} [style] - Leverage one of the existing "deadzone" presets. If you use a custom deadzone, ignore this parameter and manually specify the deadzone after calling follow().
+    * @param {float} [lerpX=1] - A value between 0 and 1. This value specifies the amount of linear interpolation to use when horizontally tracking the target. The closer the value to 1, the faster the camera will track.
+    * @param {float} [lerpY=1] - A value between 0 and 1. This value specifies the amount of linear interpolation to use when vertically tracking the target. The closer the value to 1, the faster the camera will track.
     */
-    follow: function (target, style) {
+    follow: function (target, style, lerpX, lerpY) {
 
         if (style === undefined) { style = Phaser.Camera.FOLLOW_LOCKON; }
+        if (lerpX === undefined) { lerpX = 1; }
+        if (lerpY === undefined) { lerpY = 1; }
 
         this.target = target;
+        this.lerp.set(lerpX, lerpY);
 
         var helper;
 
@@ -13330,14 +13483,154 @@ Phaser.Camera.prototype = {
     },
 
     /**
-    * Update focusing and scrolling.
+    * This creates a camera shake effect. It works by applying a random amount of additional
+    * spacing on the x and y axis each frame. You can control the intensity and duration
+    * of the effect, and if it should effect both axis or just one.
+    *
+    * When the shake effect ends the signal Camera.onShakeComplete is dispatched.
+    *
+    * @method Phaser.Camera#shake
+    * @param {float} [intensity=0.05] - The intensity of the camera shake. Given as a percentage of the camera size representing the maximum distance that the camera can move while shaking.
+    * @param {number} [duration=500] - The duration of the shake effect in milliseconds.
+    * @param {boolean} [force=true] - If a camera shake effect is already running and force is true it will replace the previous effect, resetting the duration.
+    * @param {number} [direction=Phaser.Camera.SHAKE_BOTH] - The directions in which the camera can shake. Either Phaser.Camera.SHAKE_BOTH, Phaser.Camera.SHAKE_HORIZONTAL or Phaser.Camera.SHAKE_VERTICAL.
+    * @param {boolean} [shakeBounds=true] - Is the effect allowed to shake the camera beyond its bounds (if set?).
+    * @return {boolean} True if the shake effect was started, otherwise false.
+    */
+    shake: function (intensity, duration, force, direction, shakeBounds) {
+
+        if (intensity === undefined) { intensity = 0.05; }
+        if (duration === undefined) { duration = 500; }
+        if (force === undefined) { force = true; }
+        if (direction === undefined) { direction = Phaser.Camera.SHAKE_BOTH; }
+        if (shakeBounds === undefined) { shakeBounds = true; }
+
+        if (!force && this._shake.duration > 0)
+        {
+            //  Can't reset an already running shake
+            return false;
+        }
+
+        this._shake.intensity = intensity;
+        this._shake.duration = duration;
+        this._shake.shakeBounds = shakeBounds;
+
+        this._shake.x = 0;
+        this._shake.y = 0;
+
+        this._shake.horizontal = (direction === Phaser.Camera.SHAKE_BOTH || direction === Phaser.Camera.SHAKE_HORIZONTAL);
+        this._shake.vertical = (direction === Phaser.Camera.SHAKE_BOTH || direction === Phaser.Camera.SHAKE_VERTICAL);
+
+        return true;
+
+    },
+
+    /**
+    * This creates a camera flash effect. It works by filling the game with the solid fill
+    * color specified, and then fading it away to alpha 0 over the duration given.
+    *
+    * You can use this for things such as hit feedback effects.
+    *
+    * When the effect ends the signal Camera.onFlashComplete is dispatched.
+    *
+    * @method Phaser.Camera#flash
+    * @param {numer} [color=0xffffff] - The color of the flash effect. I.e. 0xffffff for white, 0xff0000 for red, etc.
+    * @param {number} [duration=500] - The duration of the flash effect in milliseconds.
+    * @param {boolean} [force=false] - If a camera flash or fade effect is already running and force is true it will replace the previous effect, resetting the duration.
+    * @return {boolean} True if the effect was started, otherwise false.
+    */
+    flash: function (color, duration, force) {
+
+        if (color === undefined) { color = 0xffffff; }
+        if (duration === undefined) { duration = 500; }
+        if (force === undefined) { force = false; }
+
+        if (!this.fx || (!force && this._fxDuration > 0))
+        {
+            return false;
+        }
+
+        this.fx.clear();
+
+        this.fx.beginFill(color);
+        this.fx.drawRect(0, 0, this.width, this.height);
+        this.fx.endFill();
+
+        this.fx.alpha = 1;
+
+        this._fxDuration = duration;
+        this._fxType = 0;
+
+        return true;
+
+    },
+
+    /**
+    * This creates a camera fade effect. It works by filling the game with the 
+    * color specified, over the duration given, ending with a solid fill.
+    *
+    * You can use this for things such as transitioning to a new scene.
+    *
+    * The game will be left 'filled' at the end of this effect, likely obscuring
+    * everything. In order to reset it you can call `Camera.resetFX` and it will clear the
+    * fade. Or you can call `Camera.flash` with the same color as the fade, and it will
+    * reverse the process, bringing the game back into view again.
+    *
+    * When the effect ends the signal Camera.onFadeComplete is dispatched.
+    *
+    * @method Phaser.Camera#fade
+    * @param {numer} [color=0x000000] - The color the game will fade to. I.e. 0x000000 for black, 0xff0000 for red, etc.
+    * @param {number} [duration=500] - The duration of the fade in milliseconds.
+    * @param {boolean} [force=false] - If a camera flash or fade effect is already running and force is true it will replace the previous effect, resetting the duration.
+    * @return {boolean} True if the effect was started, otherwise false.
+    */
+    fade: function (color, duration, force) {
+
+        if (color === undefined) { color = 0x000000; }
+        if (duration === undefined) { duration = 500; }
+        if (force === undefined) { force = false; }
+
+        if (!this.fx || (!force && this._fxDuration > 0))
+        {
+            return false;
+        }
+
+        this.fx.clear();
+
+        this.fx.beginFill(color);
+        this.fx.drawRect(0, 0, this.width, this.height);
+        this.fx.endFill();
+
+        this.fx.alpha = 0;
+
+        this._fxDuration = duration;
+        this._fxType = 1;
+
+        return true;
+
+    },
+
+    /**
+    * The camera update loop. This is called automatically by the core game loop.
+    *
     * @method Phaser.Camera#update
+    * @protected
     */
     update: function () {
+
+        if (this._fxDuration > 0)
+        {
+            this.updateFX();
+        }
 
         if (this.target)
         {
             this.updateTarget();
+        }
+
+        if (this._shake.duration > 0)
+        {
+            this.updateShake();
         }
 
         if (this.bounds)
@@ -13348,26 +13641,92 @@ Phaser.Camera.prototype = {
         if (this.roundPx)
         {
             this.view.floor();
+            this._shake.x = Math.floor(this._shake.x);
+            this._shake.y = Math.floor(this._shake.y);
         }
 
+        // this.displayObject.position.x = -(this.view.x + this._shake.x);
+        // this.displayObject.position.y = -(this.view.y + this._shake.y);
         this.displayObject.position.x = -this.view.x;
         this.displayObject.position.y = -this.view.y;
 
     },
 
     /**
-    * Internal method
+    * Update the camera flash and fade effects.
+    *
+    * @method Phaser.Camera#updateFX
+    * @private
+    */
+    updateFX: function () {
+
+        if (this._fxType === 0)
+        {
+            //  flash
+            this.fx.alpha -= this.game.time.elapsedMS / this._fxDuration;
+
+            if (this.fx.alpha <= 0)
+            {
+                this._fxDuration = 0;
+                this.fx.alpha = 0;
+                this.onFlashComplete.dispatch();
+            }
+        }
+        else
+        {
+            //  fade
+            this.fx.alpha += this.game.time.elapsedMS / this._fxDuration;
+
+            if (this.fx.alpha >= 1)
+            {
+                this._fxDuration = 0;
+                this.fx.alpha = 1;
+                this.onFadeComplete.dispatch();
+            }
+        }
+
+    },
+
+    /**
+    * Update the camera shake effect.
+    *
+    * @method Phaser.Camera#updateShake
+    * @private
+    */
+    updateShake: function () {
+
+        this._shake.duration -= this.game.time.elapsedMS;
+
+        if (this._shake.duration <= 0)
+        {
+            this.onShakeComplete.dispatch();
+            this._shake.x = 0;
+            this._shake.y = 0;
+        }
+        else
+        {
+            if (this._shake.horizontal)
+            {
+                this._shake.x = this.game.rnd.frac() * this._shake.intensity * this.view.width * 2 - this._shake.intensity * this.view.width;
+            }
+
+            if (this._shake.vertical)
+            {
+                this._shake.y = this.game.rnd.frac() * this._shake.intensity * this.view.height * 2 - this._shake.intensity * this.view.height;
+            }
+        }
+
+    },
+
+    /**
+    * Internal method that handles tracking a sprite.
+    *
     * @method Phaser.Camera#updateTarget
     * @private
     */
     updateTarget: function () {
 
-        this._targetPosition.copyFrom(this.target);
-
-        if (this.target.parent)
-        {
-            this._targetPosition.multiply(this.target.parent.worldTransform.a, this.target.parent.worldTransform.d);
-        }
+        this._targetPosition.copyFrom(this.target.world);
 
         if (this.deadzone)
         {
@@ -13375,34 +13734,35 @@ Phaser.Camera.prototype = {
 
             if (this._edge < this.deadzone.left)
             {
-                this.view.x = this._targetPosition.x - this.deadzone.left;
+                this.view.x = this.game.math.linear(this.view.x, this._targetPosition.x - this.deadzone.left, this.lerp.x);
             }
             else if (this._edge > this.deadzone.right)
             {
-                this.view.x = this._targetPosition.x - this.deadzone.right;
+                this.view.x = this.game.math.linear(this.view.x, this._targetPosition.x - this.deadzone.right, this.lerp.x);
             }
 
             this._edge = this._targetPosition.y - this.view.y;
 
             if (this._edge < this.deadzone.top)
             {
-                this.view.y = this._targetPosition.y - this.deadzone.top;
+                this.view.y = this.game.math.linear(this.view.y, this._targetPosition.y - this.deadzone.top, this.lerp.y);
             }
             else if (this._edge > this.deadzone.bottom)
             {
-                this.view.y = this._targetPosition.y - this.deadzone.bottom;
+                this.view.y = this.game.math.linear(this.view.y, this._targetPosition.y - this.deadzone.bottom, this.lerp.y);
             }
         }
         else
         {
-            this.view.x = this._targetPosition.x - this.view.halfWidth;
-            this.view.y = this._targetPosition.y - this.view.halfHeight;
+            this.view.x = this.game.math.linear(this.view.x, this._targetPosition.x - this.view.halfWidth, this.lerp.x);
+            this.view.y = this.game.math.linear(this.view.y, this._targetPosition.y - this.view.halfHeight, this.lerp.y);
         }
 
     },
 
     /**
     * Update the Camera bounds to match the game world.
+    *
     * @method Phaser.Camera#setBoundsToWorld
     */
     setBoundsToWorld: function () {
@@ -13416,36 +13776,68 @@ Phaser.Camera.prototype = {
 
     /**
     * Method called to ensure the camera doesn't venture outside of the game world.
+    * Called automatically by Camera.update.
+    *
     * @method Phaser.Camera#checkBounds
+    * @protected
     */
     checkBounds: function () {
 
         this.atLimit.x = false;
         this.atLimit.y = false;
 
+        var vx = this.view.x + this._shake.x;
+        var vw = this.view.right + this._shake.x;
+        var vy = this.view.y + this._shake.y;
+        var vh = this.view.bottom + this._shake.y;
+
         //  Make sure we didn't go outside the cameras bounds
-        if (this.view.x <= this.bounds.x * this.scale.x)
+        if (vx <= this.bounds.x * this.scale.x)
         {
             this.atLimit.x = true;
             this.view.x = this.bounds.x * this.scale.x;
+
+            if (!this._shake.shakeBounds)
+            {
+                //  The camera is up against the bounds, so reset the shake
+                this._shake.x = 0;
+            }
         }
 
-        if (this.view.right >= this.bounds.right * this.scale.x)
+        if (vw >= this.bounds.right * this.scale.x)
         {
             this.atLimit.x = true;
             this.view.x = (this.bounds.right * this.scale.x) - this.width;
+
+            if (!this._shake.shakeBounds)
+            {
+                //  The camera is up against the bounds, so reset the shake
+                this._shake.x = 0;
+            }
         }
 
-        if (this.view.y <= this.bounds.top * this.scale.y)
+        if (vy <= this.bounds.top * this.scale.y)
         {
             this.atLimit.y = true;
             this.view.y = this.bounds.top * this.scale.y;
+
+            if (!this._shake.shakeBounds)
+            {
+                //  The camera is up against the bounds, so reset the shake
+                this._shake.y = 0;
+            }
         }
 
-        if (this.view.bottom >= this.bounds.bottom * this.scale.y)
+        if (vh >= this.bounds.bottom * this.scale.y)
         {
             this.atLimit.y = true;
             this.view.y = (this.bounds.bottom * this.scale.y) - this.height;
+
+            if (!this._shake.shakeBounds)
+            {
+                //  The camera is up against the bounds, so reset the shake
+                this._shake.y = 0;
+            }
         }
 
     },
@@ -13486,14 +13878,37 @@ Phaser.Camera.prototype = {
 
     /**
     * Resets the camera back to 0,0 and un-follows any object it may have been tracking.
+    * Also immediately resets any camera effects that may have been running such as
+    * shake, flash or fade.
     *
     * @method Phaser.Camera#reset
     */
     reset: function () {
 
         this.target = null;
+
         this.view.x = 0;
         this.view.y = 0;
+
+        this._shake.duration = 0;
+
+        this.resetFX();
+
+    },
+
+    /**
+    * Resets any active FX, such as a fade or flash and immediately clears it.
+    * Useful to calling after a fade in order to remove the fade from the Stage.
+    *
+    * @method Phaser.Camera#resetFX
+    */
+    resetFX: function () {
+
+        this.fx.clear();
+
+        this.fx.alpha = 0;
+
+        this._fxDuration = 0;
 
     }
 
@@ -13509,7 +13924,9 @@ Phaser.Camera.prototype.constructor = Phaser.Camera;
 Object.defineProperty(Phaser.Camera.prototype, "x", {
 
     get: function () {
+
         return this.view.x;
+
     },
 
     set: function (value) {
@@ -13532,7 +13949,9 @@ Object.defineProperty(Phaser.Camera.prototype, "x", {
 Object.defineProperty(Phaser.Camera.prototype, "y", {
 
     get: function () {
+
         return this.view.y;
+
     },
 
     set: function (value) {
@@ -13555,8 +13974,11 @@ Object.defineProperty(Phaser.Camera.prototype, "y", {
 Object.defineProperty(Phaser.Camera.prototype, "position", {
 
     get: function () {
-        this._position.set(this.view.centerX, this.view.centerY);
+
+        this._position.set(this.view.x, this.view.y);
+
         return this._position;
+
     },
 
     set: function (value) {
@@ -13580,11 +14002,15 @@ Object.defineProperty(Phaser.Camera.prototype, "position", {
 Object.defineProperty(Phaser.Camera.prototype, "width", {
 
     get: function () {
+
         return this.view.width;
+
     },
 
     set: function (value) {
+
         this.view.width = value;
+
     }
 
 });
@@ -13597,18 +14023,22 @@ Object.defineProperty(Phaser.Camera.prototype, "width", {
 Object.defineProperty(Phaser.Camera.prototype, "height", {
 
     get: function () {
+
         return this.view.height;
+
     },
 
     set: function (value) {
+
         this.view.height = value;
+
     }
 
 });
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -13837,7 +14267,7 @@ Phaser.State.prototype.constructor = Phaser.State;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -14628,20 +15058,63 @@ Object.defineProperty(Phaser.StateManager.prototype, "created", {
 /**
 * @author       Miller Medeiros http://millermedeiros.github.com/js-signals/
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
 /**
-* A Signal is an event dispatch mechanism that supports broadcasting to multiple listeners.
+* Signals are what Phaser uses to handle events and event dispatching.
+* You can listen for a Signal by binding a callback / function to it.
+* This is done by using either `Signal.add` or `Signal.addOnce`.
 *
-* Event listeners are uniquely identified by the listener/callback function and the context.
+* For example you can listen for a touch or click event from the Input Manager 
+* by using its `onDown` Signal:
+*
+* `game.input.onDown.add(function() { ... });`
+*
+* Rather than inline your function, you can pass a reference:
+*
+* `game.input.onDown.add(clicked, this);`
+* `function clicked () { ... }`
+*
+* In this case the second argument (`this`) is the context in which your function should be called.
+*
+* Now every time the InputManager dispatches the `onDown` signal (or event), your function
+* will be called.
+*
+* Very often a Signal will send arguments to your function.
+* This is specific to the Signal itself.
+* If you're unsure then check the documentation, or failing that simply do:
+*
+* `Signal.add(function() { console.log(arguments); })`
+*
+* and it will log all of the arguments your function received from the Signal.
+*
+* Sprites have lots of default signals you can listen to in their Events class, such as:
+*
+* `sprite.events.onKilled`
 * 
+* Which is called automatically whenever the Sprite is killed.
+* There are lots of other events, see the Events component for a list.
+*
+* As well as listening to pre-defined Signals you can also create your own:
+*
+* `var mySignal = new Phaser.Signal();`
+*
+* This creates a new Signal. You can bind a callback to it:
+*
+* `mySignal.add(myCallback, this);`
+*
+* and then finally when ready you can dispatch the Signal:
+*
+* `mySignal.dispatch(your arguments);`
+*
+* And your callback will be invoked. See the dispatch method for more details.
+*
 * @class Phaser.Signal
 * @constructor
 */
-Phaser.Signal = function () {
-};
+Phaser.Signal = function () {};
 
 Phaser.Signal.prototype = {
 
@@ -14687,7 +15160,7 @@ Phaser.Signal.prototype = {
     * @property {function} _boundDispatch - The bound dispatch function, if any.
     * @private
     */
-    _boundDispatch: true,
+    _boundDispatch: false,
 
     /**
     * @method Phaser.Signal#validateListener
@@ -15091,7 +15564,7 @@ Phaser.Signal.prototype.constructor = Phaser.Signal;
 /**
 * @author       Miller Medeiros http://millermedeiros.github.com/js-signals/
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -15290,7 +15763,7 @@ Phaser.SignalBinding.prototype.constructor = Phaser.SignalBinding;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -15538,7 +16011,7 @@ Object.defineProperty(Phaser.Filter.prototype, 'height', {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -15663,7 +16136,7 @@ Phaser.Plugin.prototype.constructor = Phaser.Plugin;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -15949,7 +16422,7 @@ Phaser.PluginManager.prototype.constructor = Phaser.PluginManager;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -16120,7 +16593,7 @@ Phaser.Stage.prototype.update = function () {
 
 /**
 * This is called automatically before the renderer runs and after the plugins have updated.
-* In postUpdate this is where all the final physics calculatations and object positioning happens.
+* In postUpdate this is where all the final physics calculations and object positioning happens.
 * The objects are processed in the order of the display list.
 * The only exception to this is if the camera is following an object, in which case that is updated first.
 *
@@ -16305,7 +16778,7 @@ Phaser.Stage.prototype.setBackgroundColor = function (color) {
 *
 * @method Phaser.Stage#destroy
 */
-Phaser.Stage.prototype.destroy  = function () {
+Phaser.Stage.prototype.destroy = function () {
 
     if (this._hiddenVar)
     {
@@ -16370,7 +16843,7 @@ Object.defineProperty(Phaser.Stage.prototype, "smoothed", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -16659,7 +17132,7 @@ Phaser.Group.prototype.add = function (child, silent) {
 
     if (child.parent !== this)
     {
-        if (child.body && child.parent)
+        if (child.body && child.parent && child.parent.hash)
         {
             child.parent.removeFromHash(child);
         }
@@ -17166,6 +17639,29 @@ Phaser.Group.prototype.reverse = function () {
 Phaser.Group.prototype.getIndex = function (child) {
 
     return this.children.indexOf(child);
+
+};
+
+/**
+* Searches the Group for the first instance of a child with the `name`
+* property matching the given argument. Should more than one child have
+* the same name only the first instance is returned.
+*
+* @method Phaser.Group#getByName
+* @param {string} name - The name to search for.
+* @return {any} The first child with a matching name, or null if none were found.
+*/
+Phaser.Group.prototype.getByName = function (name) {
+
+    for (var i = 0; i < this.children.length; i++)
+    {
+        if (this.children[i].name === name)
+        {
+            return this.children[i];
+        }
+    }
+
+    return null;
 
 };
 
@@ -17782,7 +18278,6 @@ Phaser.Group.prototype.postUpdate = function () {
     }
 
 };
-
 
 /**
 * Find children matching a certain predicate.
@@ -18690,7 +19185,7 @@ Object.defineProperty(Phaser.Group.prototype, "angle", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -18757,13 +19252,9 @@ Phaser.World.prototype.boot = function () {
 
     this.camera = new Phaser.Camera(this.game, 0, 0, 0, this.game.width, this.game.height);
 
-    this.camera.displayObject = this;
-
-    this.camera.scale = this.scale;
-
-    this.game.camera = this.camera;
-
     this.game.stage.addChild(this);
+
+    this.camera.boot();
 
 };
 
@@ -18865,6 +19356,9 @@ Phaser.World.prototype.shutdown = function () {
 * This will take the given game object and check if its x/y coordinates fall outside of the world bounds.
 * If they do it will reposition the object to the opposite side of the world, creating a wrap-around effect.
 * If sprite has a P2 body then the body (sprite.body) should be passed as first parameter to the function.
+*
+* Please understand there are limitations to this method. For example if you have scaled the World
+* then objects won't always be re-positioned correctly, and you'll need to employ your own wrapping function.
 *
 * @method Phaser.World#wrap
 * @param {Phaser.Sprite|Phaser.Image|Phaser.TileSprite|Phaser.Text} sprite - The object you wish to wrap around the world bounds.
@@ -18989,7 +19483,7 @@ Object.defineProperty(Phaser.World.prototype, "height", {
 Object.defineProperty(Phaser.World.prototype, "centerX", {
 
     get: function () {
-        return this.bounds.halfWidth;
+        return this.bounds.halfWidth + this.bounds.x;
     }
 
 });
@@ -19002,7 +19496,7 @@ Object.defineProperty(Phaser.World.prototype, "centerX", {
 Object.defineProperty(Phaser.World.prototype, "centerY", {
 
     get: function () {
-        return this.bounds.halfHeight;
+        return this.bounds.halfHeight + this.bounds.y;
     }
 
 });
@@ -19053,7 +19547,7 @@ Object.defineProperty(Phaser.World.prototype, "randomY", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -19430,7 +19924,7 @@ Phaser.Game = function (width, height, renderer, parent, state, transparent, ant
     /**
     * @property {boolean} forceSingleUpdate - Should the game loop force a logic update, regardless of the delta timer? Set to true if you know you need this. You can toggle it on the fly.
     */
-    this.forceSingleUpdate = false;
+    this.forceSingleUpdate = true;
 
     /**
     * @property {number} _nextNotification - The soonest game.time.time value that the next fpsProblemNotifier can be dispatched.
@@ -19734,7 +20228,14 @@ Phaser.Game.prototype = {
     */
     setUpRenderer: function () {
 
-        this.canvas = Phaser.Canvas.create(this, this.width, this.height, this.config['canvasID'], true);
+        if (this.config['canvas'])
+        {
+            this.canvas = this.config['canvas'];
+        }
+        else
+        {
+            this.canvas = Phaser.Canvas.create(this, this.width, this.height, this.config['canvasID'], true);
+        }
 
         if (this.config['canvasStyle'])
         {
@@ -20056,23 +20557,29 @@ Phaser.Game.prototype = {
 
         this.state.destroy();
         this.sound.destroy();
-
         this.scale.destroy();
         this.stage.destroy();
         this.input.destroy();
         this.physics.destroy();
+        this.plugins.destroy();
 
         this.state = null;
-        this.cache = null;
-        this.input = null;
-        this.load = null;
         this.sound = null;
+        this.scale = null;
         this.stage = null;
+        this.input = null;
+        this.physics = null;
+        this.plugins = null;
+
+        this.cache = null;
+        this.load = null;
         this.time = null;
         this.world = null;
+
         this.isBooted = false;
 
         this.renderer.destroy(false);
+
         Phaser.Canvas.removeFromDOM(this.canvas);
 
         Phaser.GAMES[this.id] = null;
@@ -20092,8 +20599,14 @@ Phaser.Game.prototype = {
         if (!this._paused)
         {
             this._paused = true;
+
             this.time.gamePaused();
-            this.sound.setMute();
+
+            if (this.sound.muteOnPause)
+            {
+                this.sound.setMute();
+            }
+
             this.onPause.dispatch(event);
 
             //  Avoids Cordova iOS crash event: https://github.com/photonstorm/phaser/issues/1800
@@ -20118,9 +20631,16 @@ Phaser.Game.prototype = {
         if (this._paused && !this._codePaused)
         {
             this._paused = false;
+
             this.time.gameResumed();
+
             this.input.reset();
-            this.sound.unsetMute();
+
+            if (this.sound.muteOnPause)
+            {
+                this.sound.unsetMute();
+            }
+
             this.onResume.dispatch(event);
 
             //  Avoids Cordova iOS crash event: https://github.com/photonstorm/phaser/issues/1800
@@ -20224,7 +20744,7 @@ Object.defineProperty(Phaser.Game.prototype, "paused", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -21312,7 +21832,7 @@ Object.defineProperty(Phaser.Input.prototype, "worldY", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -21320,10 +21840,10 @@ Object.defineProperty(Phaser.Input.prototype, "worldY", {
 * The Mouse class is responsible for handling all aspects of mouse interaction with the browser.
 *
 * It captures and processes mouse events that happen on the game canvas object.
-* It also adds a single `mouseup` listener to `window` which is used to capture the mouse being released 
+* It also adds a single `mouseup` listener to `window` which is used to capture the mouse being released
 * when not over the game.
 *
-* You should not normally access this class directly, but instead use a Phaser.Pointer object 
+* You should not normally access this class directly, but instead use a Phaser.Pointer object
 * which normalises all game input for you, including accurate button handling.
 *
 * @class Phaser.Mouse
@@ -21697,7 +22217,7 @@ Phaser.Mouse.prototype = {
 
     /**
     * The internal method that handles the mouse up event from the window.
-    * 
+    *
     * @method Phaser.Mouse#onMouseUpGlobal
     * @param {MouseEvent} event - The native event from the browser. This gets stored in Mouse.event.
     */
@@ -21719,7 +22239,7 @@ Phaser.Mouse.prototype = {
 
     /**
     * The internal method that handles the mouse out event from the window.
-    * 
+    *
     * @method Phaser.Mouse#onMouseOutGlobal
     * @param {MouseEvent} event - The native event from the browser. This gets stored in Mouse.event.
     */
@@ -21744,7 +22264,7 @@ Phaser.Mouse.prototype = {
         //  the browser opening a context-menu or similar.
         //  On OS X Chrome especially this is bad news, as it blocks
         //  us then getting a mouseup event, so we need to force that through.
-        //  
+        //
         //  No matter what, we must cancel the left and right buttons
 
         this.input.mousePointer.stop(event);
@@ -21873,7 +22393,7 @@ Phaser.Mouse.prototype = {
 
     /**
     * Internal pointerLockChange handler.
-    * 
+    *
     * @method Phaser.Mouse#pointerLockChange
     * @param {Event} event - The native event from the browser. This gets stored in Mouse.event.
     */
@@ -21934,6 +22454,7 @@ Phaser.Mouse.prototype = {
         }
 
         window.removeEventListener('mouseup', this._onMouseUpGlobal, true);
+        window.removeEventListener('mouseout', this._onMouseOutGlobal, true);
 
         document.removeEventListener('pointerlockchange', this._pointerLockChange, true);
         document.removeEventListener('mozpointerlockchange', this._pointerLockChange, true);
@@ -22031,7 +22552,7 @@ Object.defineProperties(WheelEventProxy.prototype, {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -22483,7 +23004,7 @@ Phaser.MSPointer.prototype.constructor = Phaser.MSPointer;
 /**
 * @author       Richard Davey <rich@photonstorm.com>
 * @author       @karlmacklin <tacklemcclean@gmail.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -22804,7 +23325,7 @@ Object.defineProperty(Phaser.DeviceButton.prototype, "duration", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -24040,7 +24561,7 @@ Phaser.PointerMode = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -24504,7 +25025,7 @@ Phaser.Touch.prototype.constructor = Phaser.Touch;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -24729,6 +25250,8 @@ Phaser.InputHandler = function (sprite) {
         id: 0,
         x: 0,
         y: 0,
+        camX: 0,
+        camY: 0,
         isDown: false,
         isUp: false,
         isOver: false,
@@ -25458,13 +25981,19 @@ Phaser.InputHandler.prototype = {
             data.isUp = false;
             data.timeDown = this.game.time.time;
 
+            //  It's possible the onInputDown event creates a new Sprite that is on-top of this one, so we ought to force a Pointer update
+            pointer.dirty = true;
+
             if (this.sprite && this.sprite.events)
             {
                 this.sprite.events.onInputDown$dispatch(this.sprite, pointer);
+                //  The onInputDown event might have destroyed this sprite.
+                if (this.sprite === null)
+                {
+                    return;
+                }
             }
 
-            //  It's possible the onInputDown event created a new Sprite that is on-top of this one, so we ought to force a Pointer update
-            pointer.dirty = true;
 
             //  Start drag
             if (this.draggable && this.isDragged === false)
@@ -25591,14 +26120,17 @@ Phaser.InputHandler.prototype = {
         }
         else
         {
+            var cx = this.game.camera.x - this._pointerData[pointer.id].camX;
+            var cy = this.game.camera.y - this._pointerData[pointer.id].camY;
+
             if (this.allowHorizontalDrag)
             {
-                this.sprite.x = px;
+                this.sprite.x = px + cx;
             }
 
             if (this.allowVerticalDrag)
             {
-                this.sprite.y = py;
+                this.sprite.y = py + cy;
             }
 
             if (this.boundsRect)
@@ -25816,19 +26348,23 @@ Phaser.InputHandler.prototype = {
 
         this.isDragged = true;
         this._draggedPointerID = pointer.id;
+
+        this._pointerData[pointer.id].camX = this.game.camera.x;
+        this._pointerData[pointer.id].camY = this.game.camera.y;
+
         this._pointerData[pointer.id].isDragged = true;
 
         if (this.sprite.fixedToCamera)
         {
             if (this.dragFromCenter)
             {
-                this.sprite.centerOn(pointer.x, pointer.y);
-                this._dragPoint.setTo(this.sprite.cameraOffset.x - pointer.x, this.sprite.cameraOffset.y - pointer.y);
+                var bounds = this.sprite.getBounds();
+
+                this.sprite.cameraOffset.x = this.globalToLocalX(pointer.x) + (this.sprite.cameraOffset.x - bounds.centerX);
+                this.sprite.cameraOffset.y = this.globalToLocalY(pointer.y) + (this.sprite.cameraOffset.y - bounds.centerY);
             }
-            else
-            {
-                this._dragPoint.setTo(this.sprite.cameraOffset.x - pointer.x, this.sprite.cameraOffset.y - pointer.y);
-            }
+
+            this._dragPoint.setTo(this.sprite.cameraOffset.x - pointer.x, this.sprite.cameraOffset.y - pointer.y);
         }
         else
         {
@@ -26110,7 +26646,7 @@ Phaser.InputHandler.prototype.constructor = Phaser.InputHandler;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26118,7 +26654,7 @@ Phaser.Component = function () {};
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26164,7 +26700,7 @@ Phaser.Component.Angle.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26205,7 +26741,7 @@ Phaser.Component.Animation.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26260,7 +26796,7 @@ Phaser.Component.AutoCull.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26381,7 +26917,7 @@ Phaser.Component.Bounds.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26478,7 +27014,7 @@ Phaser.Component.BringToTop.prototype.moveDown = function () {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26834,7 +27370,7 @@ Phaser.Component.Core.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -26952,7 +27488,7 @@ Phaser.Component.Crop.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27021,7 +27557,7 @@ Phaser.Component.Delta.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27100,6 +27636,8 @@ Phaser.Component.Destroy.prototype = {
         {
             this.events.destroy();
         }
+
+        this.game.tweens.removeFrom(this);
 
         var i = this.children.length;
 
@@ -27182,7 +27720,7 @@ Phaser.Component.Destroy.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27376,7 +27914,7 @@ for (var prop in Phaser.Events.prototype)
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27465,7 +28003,7 @@ Phaser.Component.FixedToCamera.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27572,7 +28110,7 @@ Phaser.Component.Health.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27609,7 +28147,7 @@ Phaser.Component.InCamera.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27682,7 +28220,7 @@ Phaser.Component.InputEnabled.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27722,6 +28260,12 @@ Phaser.Component.InWorld.preUpdate = function () {
             else
             {
                 this.renderable = false;
+
+                if (this.outOfCameraBoundsKill)
+                {
+                    this.kill();
+                    return false;
+                }
             }
         }
 
@@ -27782,6 +28326,15 @@ Phaser.Component.InWorld.prototype = {
     outOfBoundsKill: false,
 
     /**
+     * If this and the `autoCull` property are both set to `true`, then the `kill` method
+     * is called as soon as the Game Object leaves the camera bounds.
+     *
+     * @property {boolean} outOfCameraBoundsKill
+     * @default
+     */
+    outOfCameraBoundsKill: false,
+
+    /**
     * @property {boolean} _outOfBoundsFired - Internal state var.
     * @private
     */
@@ -27807,7 +28360,7 @@ Phaser.Component.InWorld.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27936,7 +28489,7 @@ Phaser.Component.LifeSpan.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -27976,6 +28529,8 @@ Phaser.Component.LoadTexture.prototype = {
     * This allows you to create sprites using `load.image` during development, and then change them 
     * to use a Texture Atlas later in development by simply searching your code for 'PENDING_ATLAS' 
     * and swapping it to be the key of the atlas data.
+    *
+    * Note: You cannot use a RenderTexture as a texture for a TileSprite.
     *
     * @method
     * @param {string|Phaser.RenderTexture|Phaser.BitmapData|Phaser.Video|PIXI.Texture} key - This is the image or texture used by the Sprite during rendering. It can be a string which is a reference to the Cache Image entry, or an instance of a RenderTexture, BitmapData, Video or PIXI.Texture.
@@ -28021,6 +28576,10 @@ Phaser.Component.LoadTexture.prototype = {
             {
                 setFrame = !this.animations.loadFrameData(cache.getFrameData(key.key, Phaser.Cache.BITMAPDATA), frame);
             }
+            else
+            {
+                setFrame = !this.animations.loadFrameData(key.frameData, 0);
+            }
         }
         else if (Phaser.Video && key instanceof Phaser.Video)
         {
@@ -28032,6 +28591,12 @@ Phaser.Component.LoadTexture.prototype = {
             this.setFrame(key.texture.frame.clone());
             key.onChangeSource.add(this.resizeFrame, this);
             this.texture.valid = valid;
+        }
+        else if (Phaser.Tilemap && key instanceof Phaser.TilemapLayer)
+        {
+            // this.customRender = true;
+
+            this.setTexture(PIXI.Texture.fromCanvas(key.canvas));
         }
         else if (key instanceof PIXI.Texture)
         {
@@ -28216,7 +28781,7 @@ Phaser.Component.LoadTexture.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28252,7 +28817,7 @@ Phaser.Component.Overlap.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28398,7 +28963,7 @@ Phaser.Component.PhysicsBody.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28462,7 +29027,7 @@ Phaser.Component.Reset.prototype.reset = function (x, y, health) {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28630,7 +29195,7 @@ Phaser.Component.ScaleMinMax.prototype = {
 };
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28684,7 +29249,7 @@ Phaser.Component.Smoothed.prototype = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -28934,7 +29499,7 @@ Phaser.GameObjectFactory.prototype = {
     * @param {number} y - The y coordinate of the TileSprite. The coordinate is relative to any parent container this TileSprite may be in.
     * @param {number} width - The width of the TileSprite.
     * @param {number} height - The height of the TileSprite.
-    * @param {string|Phaser.RenderTexture|Phaser.BitmapData|Phaser.Video|PIXI.Texture} key - The image used as a texture by this display object during rendering. If a string Phaser will get for an entry in the Image Cache. Or it can be an instance of a RenderTexture, BitmapData, Video or PIXI.Texture.
+    * @param {string|Phaser.BitmapData|PIXI.Texture} key - This is the image or texture used by the TileSprite during rendering. It can be a string which is a reference to the Phaser Image Cache entry, or an instance of a PIXI.Texture or BitmapData.
     * @param {string|number} [frame] - If a Texture Atlas or Sprite Sheet is used this allows you to specify the frame to be used. Use either an integer for a Frame ID or a string for a frame name.
     * @param {Phaser.Group} [group] - Optional Group to add the object to. If not specified it will be added to the World group.
     * @return {Phaser.TileSprite} The newly created TileSprite object.
@@ -29247,7 +29812,7 @@ Phaser.GameObjectFactory.prototype.constructor = Phaser.GameObjectFactory;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -29415,7 +29980,7 @@ Phaser.GameObjectCreator.prototype = {
     * @param {number} y - The y coordinate (in world space) to position the TileSprite at.
     * @param {number} width - The width of the TileSprite.
     * @param {number} height - The height of the TileSprite.
-    * @param {string|Phaser.RenderTexture|Phaser.BitmapData|PIXI.Texture} key - This is the image or texture used by the TileSprite during rendering. It can be a string which is a reference to the Cache entry, or an instance of a RenderTexture or PIXI.Texture.
+    * @param {string|Phaser.BitmapData|PIXI.Texture} key - This is the image or texture used by the TileSprite during rendering. It can be a string which is a reference to the Phaser Image Cache entry, or an instance of a PIXI.Texture or BitmapData.
     * @param {string|number} frame - If this TileSprite is using part of a sprite sheet or texture atlas you can specify the exact frame to use by giving a string or numeric index.
     * @return {Phaser.TileSprite} The newly created tileSprite object.
     */
@@ -29677,7 +30242,7 @@ Phaser.GameObjectCreator.prototype.constructor = Phaser.GameObjectCreator;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -29794,7 +30359,7 @@ Phaser.Sprite.prototype.preUpdate = function() {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -29887,7 +30452,7 @@ Phaser.Image.prototype.preUpdate = function() {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -30483,7 +31048,7 @@ Phaser.Button.prototype.onInputUpHandler = function (sprite, pointer, isOver) {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -30526,7 +31091,7 @@ Phaser.SpriteBatch.prototype.constructor = Phaser.SpriteBatch;
 Phaser.TileSprite = function () {};
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -31903,7 +32468,7 @@ Phaser.Device.isAndroidStockBrowser = function () {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -32211,7 +32776,7 @@ Phaser.Canvas = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -32380,7 +32945,7 @@ Phaser.RequestAnimationFrame.prototype.constructor = Phaser.RequestAnimationFram
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -33276,16 +33841,29 @@ Phaser.Math = {
     },
 
     /**
-    * Force a value within the boundaries by clamping `x` to the range `[a, b]`.
+    * Force a value within the boundaries by clamping it to the range `min`, `max`.
     *
     * @method Phaser.Math#clamp
-    * @param {number} x
-    * @param {number} a
-    * @param {number} b
-    * @return {number}
+    * @param {float} v - The value to be clamped.
+    * @param {float} min - The minimum bounds.
+    * @param {float} max - The maximum bounds.
+    * @return {number} The clamped value.
     */
-    clamp: function (x, a, b) {
-        return ( x < a ) ? a : ( ( x > b ) ? b : x );
+    clamp: function (v, min, max) {
+
+        if (v < min)
+        {
+            return min;
+        }
+        else if (max < v)
+        {
+            return max;
+        }
+        else
+        {
+            return v;
+        }
+
     },
 
     /**
@@ -33334,24 +33912,29 @@ Phaser.Math = {
     * Smoothstep function as detailed at http://en.wikipedia.org/wiki/Smoothstep
     *
     * @method Phaser.Math#smoothstep
-    * @param {number} x
-    * @param {number} min
-    * @param {number} max
-    * @return {number}
+    * @param {float} x - The input value.
+    * @param {float} min - The left edge. Should be smaller than the right edge.
+    * @param {float} max - The right edge.
+    * @return {float} A value between 0 and 1.
     */
     smoothstep: function (x, min, max) {
+
+        // Scale, bias and saturate x to 0..1 range
         x = Math.max(0, Math.min(1, (x - min) / (max - min)));
+
+        // Evaluate polynomial
         return x * x * (3 - 2 * x);
+
     },
 
     /**
     * Smootherstep function as detailed at http://en.wikipedia.org/wiki/Smoothstep
     *
     * @method Phaser.Math#smootherstep
-    * @param {number} x
-    * @param {number} min
-    * @param {number} max
-    * @return {number}
+    * @param {float} x - The input value.
+    * @param {float} min - The left edge. Should be smaller than the right edge.
+    * @param {float} max - The right edge.
+    * @return {float} A value between 0 and 1.
     */
     smootherstep: function (x, min, max) {
         x = Math.max(0, Math.min(1, (x - min) / (max - min)));
@@ -33416,7 +33999,7 @@ Phaser.Math.degToRad = function degToRad (degrees) {
 };
 
 /**
-* Convert degrees to radians.
+* Convert radians to degrees.
 *
 * @method Phaser.Math#radToDeg
 * @param {number} radians - Angle in radians.
@@ -33430,7 +34013,7 @@ Phaser.Math.radToDeg = function radToDeg (radians) {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -33787,7 +34370,7 @@ Phaser.RandomDataGenerator.prototype.constructor = Phaser.RandomDataGenerator;
 /**
  * @author       Timo Hausmann
  * @author       Richard Davey <rich@photonstorm.com>
- * @copyright    2015 Photon Storm Ltd.
+ * @copyright    2016 Photon Storm Ltd.
  * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
  */
 
@@ -34139,7 +34722,7 @@ Phaser.QuadTree.prototype.constructor = Phaser.QuadTree;
 
 /**
 * @author       Steven Rogers <soldoutactivist@gmail.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -34166,7 +34749,7 @@ Phaser.Net.prototype.constructor = Phaser.Net;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -34179,12 +34762,13 @@ Phaser.TweenManager = function () {};
 
 Phaser.TweenManager.prototype.update = function () {};
 Phaser.TweenManager.prototype.removeAll = function () {};
+Phaser.TweenManager.prototype.removeFrom = function () {};
 
 Phaser.TweenManager.prototype.constructor = Phaser.TweenManager;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -34813,7 +35397,7 @@ Phaser.Time.prototype.constructor = Phaser.Time;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -35570,7 +36154,7 @@ Phaser.Timer.prototype.constructor = Phaser.Timer;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -35580,7 +36164,7 @@ Phaser.Timer.prototype.constructor = Phaser.Timer;
 * It consists of a delay, which is a value in milliseconds after which the event will fire.
 * When the event fires it calls a specific callback with the specified arguments.
 *
-* Use {@link Phaser.Timer#add}, {@link Phaser.Timer#add}, or {@link Phaser.Timer#add} methods to create a new event.
+* Use {@link Phaser.Timer#add}, {@link Phaser.Timer#repeat}, or {@link Phaser.Timer#loop} methods to create a new event.
 *
 * @class Phaser.TimerEvent
 * @constructor
@@ -35649,7 +36233,7 @@ Phaser.TimerEvent.prototype.constructor = Phaser.TimerEvent;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -36218,7 +36802,7 @@ Object.defineProperty(Phaser.AnimationManager.prototype, 'frameName', {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -37040,7 +37624,7 @@ Phaser.Animation.generateFrameNames = function (prefix, start, stop, suffix, zer
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -37271,7 +37855,7 @@ Phaser.Frame.prototype.constructor = Phaser.Frame;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -37517,6 +38101,18 @@ Phaser.FrameData.prototype = {
 
         return output;
 
+    },
+
+    /**
+    * Destroys this FrameData collection by nulling the _frames and _frameNames arrays.
+    *
+    * @method Phaser.FrameData#destroy
+    */
+    destroy: function () {
+
+        this._frames = null;
+        this._frameNames = null;
+
     }
 
 };
@@ -37538,7 +38134,7 @@ Object.defineProperty(Phaser.FrameData.prototype, "total", {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -37866,7 +38462,7 @@ Phaser.AnimationParser = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -39889,7 +40485,7 @@ Phaser.Cache.prototype.constructor = Phaser.Cache;
 /* jshint wsh:true */
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -42003,7 +42599,7 @@ Phaser.Loader.prototype = {
                 {
                     if (file.asBlob)
                     {
-                        this.xhrLoad(file, this.transformUrl(file.url, file), 'arraybuffer', this.fileComplete);
+                        this.xhrLoad(file, this.transformUrl(file.url, file), 'blob', this.fileComplete);
                     }
                     else
                     {
@@ -42164,9 +42760,9 @@ Phaser.Loader.prototype = {
             var playThroughEvent = function () {
                 file.data.removeEventListener('canplaythrough', playThroughEvent, false);
                 file.data.onerror = null;
-                // Why does this cycle through games?
-                Phaser.GAMES[_this.game.id].load.fileComplete(file);
+                _this.fileComplete(file);
             };
+
             file.data.onerror = function () {
                 file.data.removeEventListener('canplaythrough', playThroughEvent, false);
                 file.data.onerror = null;
@@ -42590,7 +43186,7 @@ Phaser.Loader.prototype = {
                 {
                     try
                     {
-                        file.data = new Blob([new Uint8Array(xhr.response)]);
+                        file.data = xhr.response;
                     }
                     catch (e)
                     {
@@ -42926,7 +43522,7 @@ Phaser.Loader.prototype.constructor = Phaser.Loader;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -43094,7 +43690,7 @@ Phaser.LoaderParser = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -43103,7 +43699,9 @@ Phaser.LoaderParser = {
 * It allows you to exclude the default Sound Manager from your build, without making Game crash.
 */
 
-Phaser.SoundManager = function () {};
+Phaser.SoundManager = function () {
+    this.muteOnPause = false;
+};
 
 Phaser.SoundManager.prototype.boot = function () {};
 Phaser.SoundManager.prototype.update = function () {};
@@ -43115,7 +43713,7 @@ Phaser.SoundManager.prototype.constructor = Phaser.SoundManager;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -45491,7 +46089,7 @@ Object.defineProperty(Phaser.ScaleManager.prototype, "isGameLandscape", {
 
 /**
 * @author       Steven Rogers <soldoutactivist@gmail.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -45540,7 +46138,7 @@ Phaser.Utils.Debug.prototype.constructor = Phaser.Utils.Debug;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -45973,7 +46571,7 @@ Phaser.Device.whenReady(function (device) {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -46255,7 +46853,7 @@ Phaser.ArraySet.prototype.constructor = Phaser.ArraySet;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -46548,7 +47146,7 @@ Phaser.ArrayUtils = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -46737,7 +47335,7 @@ Phaser.LinkedList.prototype.constructor = Phaser.LinkedList;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -46746,7 +47344,7 @@ Phaser.LinkedList.prototype.constructor = Phaser.LinkedList;
 * quickly and easily, without the need for any external files. You can create textures for sprites and in
 * coming releases we'll add dynamic sound effect generation support as well (like sfxr).
 *
-* Access this via `State.create` (or `this.create` from within a State object)
+* Access this via `Game.create` (`this.game.create` from within a State object)
 * 
 * @class Phaser.Create
 * @constructor
@@ -46942,7 +47540,7 @@ Phaser.Create.prototype.constructor = Phaser.Create;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -47270,7 +47868,7 @@ Phaser.FlexGrid.prototype.constructor = Phaser.FlexGrid;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -47386,7 +47984,7 @@ Phaser.FlexLayer.prototype.debug = function () {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -48726,7 +49324,7 @@ Phaser.Color = {
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -48976,6 +49574,10 @@ Phaser.Physics.prototype = {
         {
             this.matter.enable(object);
         }
+        else
+        {
+            console.warn(object.key + ' is attempting to enable a physics body using an unknown physics system.');
+        }
 
     },
 
@@ -49154,7 +49756,7 @@ Phaser.Physics.prototype.constructor = Phaser.Physics;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -49236,7 +49838,7 @@ Phaser.Particles.prototype.constructor = Phaser.Particles;
 /* global Phaser:true */
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -49280,7 +49882,7 @@ PIXI.TextureSilentFail = true;
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 

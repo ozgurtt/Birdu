@@ -1,13 +1,13 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 *
 * @overview
 *
 * Phaser - http://phaser.io
 *
-* v2.4.6 "Baerlon" - Built: Thu Feb 18 2016 14:40:25
+* v2.4.7 "Hinderstap" - Built: Fri Apr 22 2016 15:09:00
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm
 *
@@ -1227,9 +1227,10 @@ PIXI.DisplayObjectContainer.prototype.displayObjectContainerUpdateTransform = PI
  */
 PIXI.DisplayObjectContainer.prototype.getBounds = function()
 {
-    if(this.children.length === 0)return PIXI.EmptyRectangle;
-
-    // TODO the bounds have already been calculated this render session so return what we have
+    if (this.children.length === 0)
+    {
+        return PIXI.EmptyRectangle;
+    }
 
     var minX = Infinity;
     var minY = Infinity;
@@ -1243,11 +1244,14 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
 
     var childVisible = false;
 
-    for(var i=0,j=this.children.length; i<j; i++)
+    for (var i = 0; i < this.children.length; i++)
     {
         var child = this.children[i];
         
-        if(!child.visible)continue;
+        if (!child.visible)
+        {
+            continue;
+        }
 
         childVisible = true;
 
@@ -1263,8 +1267,10 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
         maxY = maxY > childMaxY ? maxY : childMaxY;
     }
 
-    if(!childVisible)
+    if (!childVisible)
+    {
         return PIXI.EmptyRectangle;
+    }
 
     var bounds = this._bounds;
 
@@ -1273,9 +1279,6 @@ PIXI.DisplayObjectContainer.prototype.getBounds = function()
     bounds.width = maxX - minX;
     bounds.height = maxY - minY;
 
-    // TODO: store a reference so that if this function gets called again in the render cycle we do not have to recalculate
-    //this._currentBounds = bounds;
-   
     return bounds;
 };
 
@@ -1291,7 +1294,7 @@ PIXI.DisplayObjectContainer.prototype.getLocalBounds = function()
 
     this.worldTransform = PIXI.identityMatrix;
 
-    for(var i=0,j=this.children.length; i<j; i++)
+    for (var i = 0; i < this.children.length; i++)
     {
         this.children[i].updateTransform();
     }
@@ -1299,6 +1302,11 @@ PIXI.DisplayObjectContainer.prototype.getLocalBounds = function()
     var bounds = this.getBounds();
 
     this.worldTransform = matrixCache;
+	
+    for (i = 0; i < this.children.length; i++)
+    {
+        this.children[i].updateTransform();
+    }	
 
     return bounds;
 };
@@ -1602,6 +1610,7 @@ PIXI.Sprite.prototype.setTexture = function(texture, destroyBase)
     this.texture.baseTexture.skipRender = false;
     this.texture = texture;
     this.texture.valid = true;
+    this.cachedTint = -1;
 };
 
 /**
@@ -1619,7 +1628,15 @@ PIXI.Sprite.prototype.onTextureUpdate = function()
 };
 
 /**
-* Returns the bounds of the Sprite as a rectangle. The bounds calculation takes the worldTransform into account.
+* Returns the bounds of the Sprite as a rectangle.
+* The bounds calculation takes the worldTransform into account.
+*
+* It is important to note that the transform is not updated when you call this method.
+* So if this Sprite is the child of a Display Object which has had its transform
+* updated since the last render pass, those changes will not yet have been applied
+* to this Sprites worldTransform. If you need to ensure that all parent transforms
+* are factored into this getBounds operation then you should call `updateTransform`
+* on the root most object in this Sprites display list first.
 *
 * @method getBounds
 * @param matrix {Matrix} the transformation matrix of the sprite
@@ -1849,16 +1866,19 @@ PIXI.Sprite.prototype._renderCanvas = function(renderSession, matrix)
         var dx = (this.texture.trim) ? this.texture.trim.x - this.anchor.x * this.texture.trim.width : this.anchor.x * -this.texture.frame.width;
         var dy = (this.texture.trim) ? this.texture.trim.y - this.anchor.y * this.texture.trim.height : this.anchor.y * -this.texture.frame.height;
 
+        var tx = (wt.tx * renderSession.resolution) + renderSession.shakeX;
+        var ty = (wt.ty * renderSession.resolution) + renderSession.shakeY;
+
         //  Allow for pixel rounding
         if (renderSession.roundPixels)
         {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, (wt.tx * renderSession.resolution) | 0, (wt.ty * renderSession.resolution) | 0);
+            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx | 0, ty | 0);
             dx |= 0;
             dy |= 0;
         }
         else
         {
-            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, wt.tx * renderSession.resolution, wt.ty * renderSession.resolution);
+            renderSession.context.setTransform(wt.a, wt.b, wt.c, wt.d, tx, ty);
         }
 
         var cw = this.texture.crop.width;
@@ -2077,8 +2097,8 @@ PIXI.SpriteBatch.prototype._renderCanvas = function(renderSession)
                                  frame.y,
                                  frame.width,
                                  frame.height,
-                                 ((child.anchor.x) * (-frame.width * child.scale.x) + child.position.x  + 0.5) | 0,
-                                 ((child.anchor.y) * (-frame.height * child.scale.y) + child.position.y  + 0.5) | 0,
+                                 ((child.anchor.x) * (-frame.width * child.scale.x) + child.position.x + 0.5 + renderSession.shakeX) | 0,
+                                 ((child.anchor.y) * (-frame.height * child.scale.y) + child.position.y + 0.5 + renderSession.shakeY) | 0,
                                  frame.width * child.scale.x,
                                  frame.height * child.scale.y);
         }
@@ -2089,16 +2109,18 @@ PIXI.SpriteBatch.prototype._renderCanvas = function(renderSession)
             child.displayObjectUpdateTransform();
            
             var childTransform = child.worldTransform;
+            var tx = (childTransform.tx * renderSession.resolution) + renderSession.shakeX;
+            var ty = (childTransform.ty * renderSession.resolution) + renderSession.shakeY;
 
             // allow for trimming
            
             if (renderSession.roundPixels)
             {
-                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, childTransform.tx | 0, childTransform.ty | 0);
+                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, tx | 0, ty | 0);
             }
             else
             {
-                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, childTransform.tx, childTransform.ty);
+                context.setTransform(childTransform.a, childTransform.b, childTransform.c, childTransform.d, tx, ty);
             }
 
             context.drawImage(texture.baseTexture.source,
@@ -2212,7 +2234,7 @@ PIXI.isPowerOfTwo = function(width, height)
 
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -3669,6 +3691,9 @@ PIXI.WebGLRenderer.prototype.render = function(stage)
 
         gl.clear(gl.COLOR_BUFFER_BIT);
     }
+
+    this.offset.x = this.game.camera._shake.x;
+    this.offset.y = this.game.camera._shake.y;
 
     this.renderDisplayObject(stage, this.projection);
 };
@@ -6581,10 +6606,6 @@ PIXI.CanvasRenderer = function (game) {
      */
     this.refresh = true;
 
-    //  This is already done in the Game.setUpRenderer method.
-    // this.view.width = this.width * this.resolution;
-    // this.view.height = this.height * this.resolution;
-
     /**
      * Internal var.
      *
@@ -6642,6 +6663,9 @@ PIXI.CanvasRenderer.prototype.render = function (stage) {
     this.context.globalAlpha = 1;
 
     this.renderSession.currentBlendMode = 0;
+    this.renderSession.shakeX = this.game.camera._shake.x;
+    this.renderSession.shakeY = this.game.camera._shake.y;
+
     this.context.globalCompositeOperation = 'source-over';
 
     if (navigator.isCocoonJS && this.view.screencanvas)
@@ -6673,8 +6697,8 @@ PIXI.CanvasRenderer.prototype.render = function (stage) {
  * @method destroy
  * @param [removeView=true] {boolean} Removes the Canvas element from the DOM.
  */
-PIXI.CanvasRenderer.prototype.destroy = function(removeView)
-{
+PIXI.CanvasRenderer.prototype.destroy = function (removeView) {
+
     if (removeView === undefined) { removeView = true; }
 
     if (removeView && this.view.parent)
@@ -6696,8 +6720,8 @@ PIXI.CanvasRenderer.prototype.destroy = function(removeView)
  * @param width {Number} the new width of the canvas view
  * @param height {Number} the new height of the canvas view
  */
-PIXI.CanvasRenderer.prototype.resize = function(width, height)
-{
+PIXI.CanvasRenderer.prototype.resize = function (width, height) {
+
     this.width = width * this.resolution;
     this.height = height * this.resolution;
 
@@ -6709,6 +6733,12 @@ PIXI.CanvasRenderer.prototype.resize = function(width, height)
         this.view.style.width = this.width / this.resolution + "px";
         this.view.style.height = this.height / this.resolution + "px";
     }
+
+    if (this.renderSession.smoothProperty)
+    {
+        this.context[this.renderSession.smoothProperty] = (this.renderSession.scaleMode === PIXI.scaleModes.LINEAR);
+    }
+
 };
 
 /**
@@ -8095,13 +8125,16 @@ PIXI.Strip.prototype._renderCanvas = function(renderSession)
 
     var transform = this.worldTransform;
 
+    var tx = (transform.tx * renderSession.resolution) + renderSession.shakeX;
+    var ty = (transform.ty * renderSession.resolution) + renderSession.shakeY;
+
     if (renderSession.roundPixels)
     {
-        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx | 0, transform.ty | 0);
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, tx | 0, ty | 0);
     }
     else
     {
-        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, tx, ty);
     }
 
     if (this.drawMode === PIXI.Strip.DrawModes.TRIANGLE_STRIP)
@@ -8765,8 +8798,10 @@ PIXI.TilingSprite.prototype._renderCanvas = function(renderSession)
     
     var wt = this.worldTransform;
     var resolution = renderSession.resolution;
+    var tx = (wt.tx * resolution) + renderSession.shakeX;
+    var ty = (wt.ty * resolution) + renderSession.shakeY;
 
-    context.setTransform(wt.a * resolution, wt.b * resolution, wt.c * resolution, wt.d * resolution, wt.tx * resolution, wt.ty * resolution);
+    context.setTransform(wt.a * resolution, wt.b * resolution, wt.c * resolution, wt.d * resolution, tx, ty);
 
     if (this.refreshTexture)
     {
@@ -8871,10 +8906,8 @@ PIXI.TilingSprite.prototype.generateTilingTexture = function(forcePowerOfTwo, re
     var texture = this.texture;
     var frame = texture.frame;
 
-    console.log('generateTilingTexture', texture, frame);
-
-    var targetWidth = this._frame.sourceSizeW;
-    var targetHeight = this._frame.sourceSizeH;
+    var targetWidth = this._frame.sourceSizeW || this._frame.width;
+    var targetHeight = this._frame.sourceSizeH || this._frame.height;
 
     var dx = 0;
     var dy = 0;

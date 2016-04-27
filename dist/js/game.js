@@ -414,22 +414,6 @@ function Boot() {}
 
 Boot.prototype = {
   preload: function() {
-    console.log(window.location.pathname);
-      console.log(window.location.pathname);
-        console.log(window.location.pathname);
-          console.log(window.location.pathname);
-            console.log(window.location.pathname);
-              console.log(window.location.pathname);
-                console.log(window.location.pathname);
-                  console.log(window.location.pathname);
-                    console.log(window.location.pathname);
-                      console.log(window.location.pathname);
-                        console.log(window.location.pathname);
-                          console.log(window.location.pathname);
-                            console.log(window.location.pathname);
-                              console.log(window.location.pathname);
-                                console.log(window.location.pathname);
-                                  console.log(window.location.pathname);
     this.load.image('preloader', 'assets/preloader.gif');
 
     //force game to fill up screen
@@ -533,12 +517,12 @@ GameOver.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    this.congratsTextString = "Better luck next time.\n";
+    var gameScore = this.game.global.score + this.game.global.scoreBuffer;
+    this.congratsTextString = "Score: "+ gameScore +", Level: "+ this.game.global.level + "\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
         var highscore_txt = "High Score: ";
 
-        var gameScore = this.game.global.score + this.game.global.scoreBuffer;
         if (gameScore > max){
           localStorage["maxScore"] = gameScore;
           max = gameScore;
@@ -559,7 +543,7 @@ GameOver.prototype = {
     this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Better luck next time', this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 
@@ -989,14 +973,13 @@ Preload.prototype = {
     this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
   },
   //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
-  //for this game I utilized wav, ogg, and mp3
+  //for this game I utilized wav, ogg, and mp3 (in that order)
   arrayOfCompatibleMusicFileNames: function(key){
     var aud = 'assets/audio/'
     var wav = aud + 'wav/';
     var ogg = aud + 'ogg/';
-    var mp3 = aud + 'mp3/';
 
-    return [wav+key+".wav",ogg+key+".ogg",mp3+key+".mp3"]
+    return [ogg+key+".ogg",wav+key+".wav"]
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

@@ -76,9 +76,8 @@ Preload.prototype = {
     var aud = 'assets/audio/'
     var wav = aud + 'wav/';
     var ogg = aud + 'ogg/';
-    var mp3 = aud + 'mp3/';
 
-    return [wav+key+".wav",ogg+key+".ogg",mp3+key+".mp3"]
+    return [ogg+key+".ogg",wav+key+".wav"]
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

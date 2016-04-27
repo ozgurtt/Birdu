@@ -6,7 +6,7 @@
 
 Phaser is a fast, free and fun open source HTML5 game framework. It uses a custom build of [Pixi.js](https://github.com/GoodBoyDigital/pixi.js/) for WebGL and Canvas rendering across desktop and mobile web browsers. Games can be compiled to iOS, Android and desktop apps via 3rd party tools like Cocoon, Cordova and Electron.
 
-Along with the fantastic open source community Phaser is actively developed and maintained by [Photon Storm Limited](http://www.photonstorm.com). As a result of rapid support and a developer friendly API Phaser is currently one of the [most starred](https://github.com/showcases/javascript-game-engines) game frameworks on Github.
+Along with the fantastic open source community Phaser is actively developed and maintained by [Photon Storm Limited](http://www.photonstorm.com). As a result of rapid support and a developer friendly API Phaser is currently one of the [most starred](https://github.com/showcases/javascript-game-engines) game frameworks on GitHub.
 
 Thousands of developers worldwide use it. From indies and multi-national digital agencies to schools and Universities. Each creating their own incredible games. Grab the source and join in the fun!
 
@@ -37,19 +37,25 @@ Thousands of developers worldwide use it. From indies and multi-national digital
 ![div](http://www.phaser.io/images/github/div.png)
 
 <a name="whats-new"></a>
-## What's new in Phaser 2.4.6
+## What's new in Phaser 2.4.7
 
 <div align="center"><img src="http://phaser.io/images/github/news.jpg"></div>
 
-> 18th February 2016
+> 22nd April 2016
 
-Phaser 2.4.6 is our second release in 2016 and represents several months of fixes and optimizations. As a point release it's a safe update from a previous 2.4 build, but as always please test first before upgrading, and be sure to skim through the extensive change log. There are some great new features including Dolby Digital sound support, loads of updates to Pixi and a new Webpack bundle.
+We're pleased to announce the release of Phaser 2.4.7. This version encompasses another raft of fixes, updates and new features. Many hours of hard work were put in to diligently working through the GitHub issues list, and fixing and closing down as many issues as we possibly could.
 
-Due to on-going development of Lazer (previously known as Phaser 3) Phaser is soon to enter the LTS (long-term support) stage of its life. This is when we impose a feature freeze, locking the API down and responding only to bugs. This is a necessary step to allow us to focus on Lazer while still ensuring Phaser is given the support it deserves. Thousands of developers use Phaser and we've no intention of ignoring that. However with the release of 2.4.5 we will now be moderating issues opened on GitHub to this effect.
+My thanks to all those who contributed to this release, either by way of telling us about an issue, providing a fix, or just testing out the release candidate.
 
-As always, keep you eyes on the Phaser web site or [Twitter](https://twitter.com/photonstorm) for the latest news.
+There are a few internal changes in 2.4.7, nothing that breaks the public-facing API, but if you do some deep-dive work in Phasers guts then you may want to check out the change log, and commit history, to be sure it doesn't impact your own code.
 
-Finally we'd be extremely grateful if you could get involved with our [Phaser Patreon campaign](https://www.patreon.com/photonstorm). The uptake so far has been fantastic. Thank you to everyone who now supports Phaser development and shares our belief in the future of HTML5 gaming and Phasers role in that.
+We are now splitting our time between development of Lazer, and Phaser 2.5. We decided, after much discussion with the community, that we owed it to Phaser to go out on a high, so 2.5 will be the version in which we do just that. After this Phaser will enter the LTS (long-term support) stage of its life. 
+
+This is when we impose a feature freeze, locking the API down and responding only to bugs. This is a necessary step to allow us to focus on Lazer while still ensuring Phaser is given the support it deserves.
+
+As always, keep you eyes on the Phaser web site, our weekly newsletter, or follow me on [Twitter](https://twitter.com/photonstorm) for the latest updates.
+
+We'd be extremely grateful if you could get involved with our [Phaser Patreon campaign](https://www.patreon.com/photonstorm). The uptake so far has been fantastic. Thank you to everyone who now supports Phaser development and shares our belief in the future of HTML5 gaming, and Phasers role in that.
 
 Happy coding everyone! See you on the forums.
 
@@ -91,7 +97,7 @@ Abra: [Complete browser based game development](https://aurifexlabs.com/)
 
 <div align="center"><img src="http://phaser.io/images/github/phaser-world.png"></div>
 
-[Phaser World](http://phaser.io/community/newsletter) is our free weekly newsletter published every Friday. It contains a concise round-up of all the news posted to the Phaser site that week. Including new games, tutorials, videos, occasional special offers and more.
+Every Friday we publish our newsletter: [Phaser World](http://phaser.io/community/newsletter). It's packed full of the latest Phaser games, tutorials, videos, meet-ups, conference talks and more. We also post regular development updates, and occasionally special offers.
 
 ![div](http://www.phaser.io/images/github/div.png)
 
@@ -115,23 +121,25 @@ Install via [npm](https://www.npmjs.com)
 
 `npm install phaser`
 
+Using Browserify? Please [read this](#browserify).
+
 ### CDN
 
 [jsDelivr](http://www.jsdelivr.com/#!phaser) is a "super-fast CDN for developers". Include the following in your html:
 
-`<script src="//cdn.jsdelivr.net/phaser/2.4.6/phaser.js"></script>`
+`<script src="//cdn.jsdelivr.net/phaser/2.4.7/phaser.js"></script>`
 
 or the minified version:
 
-`<script src="//cdn.jsdelivr.net/phaser/2.4.6/phaser.min.js"></script>`
+`<script src="//cdn.jsdelivr.net/phaser/2.4.7/phaser.min.js"></script>`
 
 [cdnjs.com](https://cdnjs.com/libraries/phaser) also offers a free CDN service. They have all versions of Phaser and even the custom builds:
 
-`<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.4.6/phaser.js"></script>`
+`<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/2.4.7/phaser.js"></script>`
 
 ### Phaser Sandbox
 
-If you'd like to try coding in Phaser right now, with nothing more than your web browser then you can head over to the [Phaser Sandbox](http://phaser.io/sandbox). You'll find Quick Start templates and a user-friendly editor filled with handy code-completion features.
+If you'd like to try coding in Phaser right now, with nothing more than your web browser, then you can head over to the [Phaser Sandbox](http://phaser.io/sandbox). You'll find Quick Start templates and a user-friendly editor filled with handy code-completion features.
 
 ### Koding
 
@@ -148,13 +156,13 @@ Phaser is released under the [MIT License](http://opensource.org/licenses/MIT).
 
 <img src="http://phaser.io/images/github/learn.jpg" align="right">
 
-We have a [Getting Started Guide](http://phaser.io/tutorials/getting-started) which covers all you need to begin developing games with Phaser. From setting up a web server, to picking an IDE and coding your first game.
+We have a [Getting Started Guide](http://phaser.io/tutorials/getting-started) which covers all you need to begin developing games with Phaser. From setting up a web server, to picking an IDE and coding your first game. Please start here no matter what your game-dev experience, before diving in to the API.
 
-Prefer **videos** to reading? Lynda.com have published a video based course: [HTML5 Game Development with Phaser](http://www.lynda.com/Phaser-tutorials/HTML5-Game-Development-Phaser/163641-2.html) (requires subscription)
-
-The single biggest Phaser resource is the new [Phaser web site](http://phaser.io/news). It has hundreds of tutorials listed and fresh ones are added every week, so keep coming back to see what's new!
+The single biggest Phaser resource is the [Phaser web site](http://phaser.io/news). It has hundreds of tutorials listed and fresh ones are added every week. Keep coming back to see what's new!
 
 Using Phaser with **TypeScript**? Check out this great series of [Game From Scratch](http://www.gamefromscratch.com/page/Adventures-in-Phaser-with-TypeScript-tutorial-series.aspx) tutorials.
+
+Prefer **videos** to reading? Lynda.com have published a video based course: [HTML5 Game Development with Phaser](http://www.lynda.com/Phaser-tutorials/HTML5-Game-Development-Phaser/163641-2.html) (requires subscription)
 
 ### Source Code Examples
 
@@ -170,9 +178,13 @@ Browse the [Phaser Examples](http://phaser.io/examples) or clone the [examples r
 
 With 400 pages of content you'll find detailed articles, game development "Making Of" guides and tutorials. All were written using the latest version of Phaser, so you won't be learning any out-dated tricks here.
 
-As well as the book you get all the source code, graphics and assets to go with it, as well as lots of extras too.
+As well as the book you get all the source code, graphics and assets to go with it, and lots of extras too.
 
 [Read More](http://phaser.io/interphase)
+
+### Phaser Editor - A complete Phaser Editor
+
+[Phaser Editor](http://phasereditor.boniatillo.com/) is a brand new Eclipse based editor that offers lots of built-in tools specifically for Phaser developers. Handy features include Smart code auto-completion, built-in web server, documentation search, asset management, texture atlas creator, audio sprite creator, asset previews and lots more.
 
 ### Game Mechanic Explorer
 
@@ -191,11 +203,26 @@ Phaser is provided ready compiled in the `build` folder of the repository. There
 
 ### Custom Builds
 
-Starting from Phaser 2.3.0 we now include a brand new build system which allows you to strip out lots of additional features you may not require, saving hundreds of KB in the process. Don't use any Sound in your game? Then you can now exclude the entire sound system. Don't need Keyboard support? That can be stripped out too.
+Phaser includes a grunt based build system which allows you to strip out lots of additional features you may not require, saving hundreds of KB in the process. Don't use any Sound in your game? Then you can now exclude the entire sound system. Don't need Keyboard support? That can be stripped out too.
 
 As a result of this work the minimum build size of Phaser is now just 80KB minified and gzipped.
 
 See the [Creating a Custom Phaser Build](http://phaser.io/tutorials/creating-custom-phaser-builds) tutorial for details.
+
+<a name="browserify"></a>
+### Browserify / CJS
+
+Phaser was never written to be modular. Everything exists under one single global namespace, and you cannot `require` selected parts of it into your builds. It expects 3 global vars to exist in order to work properly: `Phaser`, `PIXI` and `p2`. The following is one way of doing this:
+
+```
+window.PIXI = require('phaser/build/custom/pixi')
+window.p2 = require('phaser/build/custom/p2')
+window.Phaser = require('phaser/build/custom/phaser-split')
+```
+
+If you build a custom version of Phaser (see above) it will split the 3 core libs out into their own files, allowing you to require them as above.
+
+We appreciate this is just a band-aid and not a proper use of modules, but please understand it was never built to be used this way. You're trying to fit a square peg in a round browserify-shaped hole, so compromises have to be made. Please don't open GitHub issues about it. We've no intention of changing Phaser at this stage of its life. Full module based development is being undertaken in Lazer.
 
 ### Webpack
 
@@ -283,7 +310,7 @@ We add [new games](http://phaser.io/news/category/game) to the Phaser site weekl
 
 Phaser requires a web browser that supports the [canvas tag](http://caniuse.com/#feat=canvas). This includes Internet Explorer 9+, Firefox, Chrome, Safari and Opera on desktop. iOS Safari, Android Browser and Chrome for Android are supported on mobile.
 
-While Phaser does its best to ensure a consistent cross-platform experience always be aware of browser and device limitations. This is especially important with regard to memory and GPU limitations on mobile, and legacy browser HTML5 compatibility.
+While Phaser does its best to ensure a consistent cross-platform experience, always be aware of browser and device limitations. This is especially important with regard to memory and GPU limitations on mobile, and legacy browser HTML5 compatibility.
 
 ### IE9
 
@@ -309,129 +336,96 @@ Lazer is the new name for Phaser 3.
 
 Lazer is the next generation of the Phaser game framework. Using a completely ES6 base it is renderer agnostic, allowing for DOM, SVG, Canvas and WebGL rendering, across desktop and mobile web browsers.
 
-You can read all about the philosophy behind Lazer [here](http://phaser.io/news/2016/01/phaser-in-2015-and-beyond) or join the Google Groups [mailing list](https://groups.google.com/d/forum/phaser3-dev) where progress on a regular basis.
+You can read all about the philosophy behind Lazer [here](http://phaser.io/news/2016/01/phaser-in-2015-and-beyond) or join the Google Groups [mailing list](https://groups.google.com/d/forum/phaser3-dev) where progress reports are posted on a regular basis.
 
 ![div](http://www.phaser.io/images/github/div.png)
 
 <a name="change-log"></a>
 ## Change Log
 
-## Version 2.4.6 - "Baerlon" - 18th February 2016
-
-2.4.6 is a point release that addresses 2 severe bugs, and should be used in place of 2.4.5 in all instances. The 2.4.5 change log appears after this one.
+## Version 2.4.7 - "Hinderstap" - 22nd April 2016
 
 ### New Features
 
-* Added RandomDataGenerator.sign, which returns a -1 or 1 (thanks @taylankasap #2328)
+* Added P2.Body.thrustLeft which will move the Body to the left by the speed given (thanks James Pryor)
+* Added P2.Body.thrustRight which will move the Body to the right by the speed given (thanks James Pryor)
+* Polygon now takes an array of arrays as a new type when constructing it: `[[x1, y1], [x2, y2]]` (thanks @ShimShamSam #2360)
+* Text has a new property `maxLines` which is the maximum number of lines to be shown for wrapped text. If set to 0 (the default) there is limit. This prevents wrapped text from overflowing on a fixed layout (thanks @slashman #2410)
+* `outOfCameraBoundsKill` is a new boolean property that all Game Objects with the `InWorld` component has. If `autoCull` and this property are both `true` then the Object will be automatically killed if it leaves the camera bounds (thanks @jakewilson #2402)
+* Group.getByName searches the Group for the first instance of a child with the `name` property matching the given argument. Should more than one child have the same name only the first instance is returned.
+* BitmapData has a new property `frameData` which is a Phaser.FrameData container instance. It contains a single Frame by default, matching the dimensions of the entire BitmapData, but can be populated with additional frames should you wish to create animations from dynamic BitmapData textures.
+* FrameData.destroy will nullify the local arrays used to contain Frame instances.
+* SoundManager.muteOnPause is a new boolean that allows you to control if the Sound system gets muted automatically when a Phaser game pauses, such as when it loses focus. You may need to set this to `false` if you wish to control the audio system from outside of your Phaser game, i.e. from DOM buttons or similar (#2382)
+* You can now pass a TilemapLayer as a Texture to a TileSprite. A limitation of this is that if you pass it to a TileSprite it will make a fill pattern from the TilemapLayer at that instant it's passed, and it won't keep track of the layer in future should it update (thanks @jdnichollsc #1989)
+* Camera has a new property: `lerp`. This is a Point object, that allows you to control the amount of horizontal and vertical smoothing to be applied to the camera when it tracks a Sprite. It works both with and without deadzones, and is turned off by default. Set it to low values such as 0.1 for really smooth motion tracking (thanks to @WombatTurkey for the idea of adding this)
+* Camera.shake is a new function that creates a camera shake effect. You can specify the intensity, duration and direction of the effect. You can also set if it should shake the camera out of bounds or not.
+* Camera.flash is a new function that makes the camera 'flash' over the top of your game. It works by filling the game with the solid fill color specified, and then fading it away to alpha 0 over the duration given. This is great for things like hit effects. You can listen for the Camera.onflashComplete Signal.
+* Camera.fade is a new function that makes the camera fade to the color given, over the course of the duration specified. This is great for things like transitioning from one State to another. You can listen for the Camera.onFadeComplete Signal.
+* Camera.resetFX resets any active FX, such as a fade or flash and immediately clears it. Useful for calling after a fade in order to remove the fade from the Stage.
+* Phaser.Camera.ENABLE_FX is a const that controls if the Camera FX are available or not. It's `true` by default, but if you set it to `false` before boot then it won't create the Graphics object required to process the effects.
+* The Arcade Physics Body has two new properties: `left` and `top`. These are the same as `Body.x` and `Body.y` but allow you to pass the Body to geometry level functions such as Circle.contains.
+* World.separate has been optimized to cut down on the number of calls to `intersect` from 3 calls per Game Object collision check, to 2. So if you were colliding 50 sprites it will reduce the call count from 150 to 100 per frame. It also reduces the calls made to `seperateX` and `seperateY` by the same factor.
+* Two immovable bodies would never set their overlap data, even if an overlap only check was being made. As this is useful data to have this has been changed. Two immovable bodies will still never separate from each other, but they _will_ have their `overlapX` and `overlapY` properties calculated now.
+* P2.Body.offset is now used and applied to the Sprite position during rendering. The values given are normal pixel values, and offset the P2 Body from the center of the Sprite (thanks @Mourtz #2430)
 
 ### Updates
 
-* StateManager.destroy now sets `clearCache` and `clearWorld` internally before clearing the current state, as otherwise they would have been left untouched, such as from Game.destroy (thanks @i-dimitrov #2138)
+* TypeScript definitions fixes and updates (thanks @jamesgroat @kiswa)
+* Docs typo fixes (thanks @thiagojobson @hayesmaker @EJanuszewski)
+* Removed a `console.log` from the TilingSprite generator.
+* Sound.position can no longer become negative, meaning calls to AudioContextNode.start with negative position offsets will no longer throw errors (thanks @Weedshaker #2351 #2368)
+* The default state of the internal property `_boundDispatch` in Phaser.Signal is now `false`, which allows for use of boundDispatches (thanks @alvinlao #2346)
+* The Tiled parser only supports uncompressed layer data. Previously it would silently fail, now it detects if layer compression is used and displays a console warning instead (thanks @MannyC #2413)
+* The Tiled parser now removes the `encoding` parameter so that a subsequent process doesn't try to decode the data again (thanks @MannyC #2412)
+* Ensure a parent container is a Group before removing from its hash (thanks @rblopes #2397)
+* The Game Object Input Handler now checks to see if the Object was destroyed during the `onInputDown` phase, and bails out early if so (thanks @zeterain #2394)
+* The Destroy component will now call TweenManager.removeFrom, removing any active tweens from the TweenManager upon the Game Objects destructions (thanks @PokemonAshLovesMyTurkeyAndILikeYouTwo #2408)
+* Tween.update will now return `false` (flagging the Tween for destruction) should the Tween.target property every become falsey. This can happen if the object the Tween was tracking is destroyed, nulled or generally removed.
+* TweenData.repeatTotal is a new property that keeps track of the total number of times the Tween should repeat. If TweenData.start is called, as a result of the Tween repeatCount being > 0 then the child tween resets its total before re-starting.
+* The Debug canvas now listens for the ScaleManager.onSizeChange signal and resizes itself accordingly when running under WebGL. This means if your game size changes the Debug canvas won't be clipped off (thanks @francisberesford #1919)
+* Camera.follow now uses the Targets `world` property to seed the camera coordinates from, rather than its local position. This means Sprites that are members of offset Groups, or transformed display lists, should now be followed more accurately (thanks @rbozan #2106)
+* PluginManager.destroy is now called by Game.destroy.
+* Game.forceSingleUpdate is now `true` by default.
+* Video now uses MediaStreamTrack.stop() instead of MediaStream.stop() where possible, as the later is now deprecated in some browsers (thanks @stoneman1 #2371)
+* The Physics Manager will now throw a console warning if you try to enable a physics body using an unknown physics engine type (thanks @jakewilson #2415)
+* The Tileset class will tell you the name of the tileset image throwing the uneven size error (thanks @jakewilson #2415)
+* Emitter.start when used with a false `explode` parameter would cumulatively add particles to the current total. With quantity 10 the first call would emit 10 particles, the next 20, and so on. Calls to start will now reset the quantity each time. This is a behavior change from earlier versions, so if you relied on the old way please account for it in your code (thanks @BdR76 #2187)
+* You can now pass in your own Canvas element to Phaser and it will use that instead of creating one itself. To do so you must pass a Game Configuration object to Phaser when you instantiate it, and set the `canvas` property of the config object to be the DOM element you wish to use, i.e.: `{ canvas: document.getElementById('yourCanvas') }` (thanks @Friksel #2311)
+* When loading Video with the `asBlob` argument set it now uses a 'blob' type for the XHR loader, and doesn't cast the resulting file as a Blob upon load. This fixes loading videos as blobs on Chrome for Android (thanks @JuCarr #2433)
+* When the Loader loads audio via the Audio tag, instead of Web Audio, it used to use `Phaser.GAMES[_this.game.id].load` as the callback handler, which would stop it from working if you had multiple Loaders set-up within Phaser. It now uses a local reference to `_this` instead (thanks @SBCGames #2435)
 
 ### Bug Fixes
 
-* Groups now check for `child.parent` before calling `removeFromHash` (thanks @spayton #2323 #2338)
-* BaseTexture.destroy wasn't correctly removing the texture from the BaseTextureCache if it was a cached CanvasPool entry (such as Text objects use), causing drawImage errors in Canvas mode, and just blank textures in WebGL (thanks @civet #2339)
-* Loader.getAudioURL and Loader.getVideoURL were hardened to support query string file URLs and still work with uri pairs and data/blobs.
-
-## Version 2.4.5 - "Sienda" - 17th February 2016
-
-### New Features
-
-* You can use the new const `Phaser.PENDING_ATLAS` as the texture key for any sprite. Doing this then sets the key to be the `frame` argument (the frame is set to zero). This allows you to create sprites using `load.image` during development, and then change them to use a Texture Atlas later in development by simply searching your code for 'PENDING_ATLAS' and swapping it to be the key of the atlas data.
-* BitmapText.cleanText is a new method that will scan the given text and either remove or replace all characters that are not present in the font data.
-* ArcadePhysics.Body.onCeiling is a new complementary method to go with onFloor (thanks @yigitozdemir #1610)
-* Text.precalculateWordWrap allows you to run your text through the Text word wrap function, which is handy if you need to handle pagination on longer pieces of text (thanks @slashman #2277)
-* Sprite (and all Game Objects) have a new argument in their destroy method: `destroyTexture`. This boolean (which is false by default) controls if the BaseTexture of the Game Object should be destroyed or not. This is extremely useful in situations where you've got a lot of dynamic assets you no longer need, such as textures created from BitmapDatas. You must set the `destroyTexture` argument yourself. This can be done in a custom Game Object destroy method or as part of your state shutdown (#2261)
-* The Health Game Object component has a new method: `setHealth` which allows you to set the exact health amount. This is now used by the `revive` function.
-* Text.useAdvancedWrap allows you to swap between the Basic and the Advanced word wrapping functions. In Advanced it will wrap long-words and condense and trim excess white space (thanks @soldoutactivist #1811)
-* The Grunt script has been updated to enhance the intro / outro and Pixi defaults. Pixi has been split into intro / outro and main blocks, so you can exclude its intro cleanly. The excludes are now bound, so if you exclude the Phaser UMD it will do the same for Pixi as well (thanks @spayton #2192)
-* ArcadePhysics.worldAngleToPointer will get the angle (in radians) between a display object and the pointer, taking all parent rotations into account (thanks @mattrick16 #2171)
-* There is new documentation on building Phaser for Webpack and a new custom build grunt option (thanks @deiga #2331)
-* Device.safariVersion now holds the major version of the Safari browser.
-* Device.edge is a boolean that is set if running under the Microsoft Edge browser.
-* Device.dolby is a boolean that is set if the browser can play EC-3 Dolby Digital Plus files
-* The Loader and SoundManager can now play Dolby Digital Plus files on supported devices.
-
-### Updates
-
-* TypeScript definitions fixes and updates (thanks @clark-stevenson @zimpy @iamfreee @milkey-mouse @juanmirod @danzel @staff0rd @sanchopancho13)
-* Docs typo fixes (thanks @zeterain @staff0rd @milkey-mouse @dick-clark @nlotz @s4wny @jonjanisch @Alaxe @cdelstad @tsphillips @rblopes @vrecluse)
-* Emitter methods `at`, `explode`, `flow`, `kill`, `revive`, `setAlpha`, `setRotation`, `setScale`, `setSize`, `setXSpeed`, `setYSpeed` and `start` now return the Emitter instance for better method chaining (thanks @samme #2308)
-* Tilemap.hasTile will now return `false` if the Tile doesn't exist in the coordinates given (which can happen if the coordinates are out of bounds) (thanks @cy-ryo-fujiwara #2304)
-* Update FrameData to check if both the numeric index was set and exists. Should fix Phaser Tiled integration as a result (thanks @Weedshaker #2298)
-* Loader.loadUpdate now gets one final call when the loading is complete (before it would end and then call loadComplete, but if you had a callback bound to loadUpdate you'd never get that final 100% load event). (thanks @nexiuhm @McFarts #2297 #2296)
-* The TypeScript definitions now have Phaser exported as a module in the header. This allows you to import / require the Phaser TypeScript defs (thanks @PixelWaffles #2255)
-* BitmapData.setHSL now accepts 0 as a valid parameter (thanks @FracturedShader #2209)
-* Force the usage of typescript 1.4.1 in the package.json so that the TypeScript defs with comments is rebuilt properly again (thanks @vulvulune #2198)
-* A tiny logic update in the StateManager (thanks @jaminscript #2151)
-* The Style object passed in to Phaser.Text is now cloned instead of referenced. This means you can adjust single Text instances without invaliding other Text objects using the same style object (thanks @asyncanup #2267)
-* Added a typescript section to the bower and npm configs to support `tsd link` (thanks @mjohnsonengr #2189 #2180)
-* SoundManager.destroy now calls AudioContext.close (thanks @stoneman1 #2237)
-* Sound.onEndedHandler now sets Sound.currentTime to be Sound.durationMS (thanks @stoneman1 #2237)
-* BitmapData would always create a private `_swapCanvas` which was a clone of its main canvas used for advanced movement operations. This no longer happens. The swap canvas is created only as needed, by those functions that use it (specifically `moveH` and `moveV`), meaning a BitmapData will now use half the amount of memory it used to, and you'll have half the amount of canvas DOM elements created (unless you make heavy use of the move functions).
-* Tweens with 'yoyo' set on them couldn't be re-used again because the start and end properties were left in a reversed state. When a yoyo tween ends it now restores the reversed values (thanks @SBCGames  #2307)
-* The width and height values passed to the Game constructor are now passed through Math.floor first. This ensures you can never create a game width non-integer dimensions, which has all kinds of implications - from browser performance to breaking things like TileSprite rendering (#2262)
-* Tilemap.getObjectIndex has been removed as it didn't work correctly in most cases, and it's easier to just scan the Tilemap.objects object directly anyway (#2242)
-* GameObject.revive will now set the health amount to 100 instead of 1, bringing it in-line with the `maxHealth` default value.
-* Moved the Sound.disconnect after the Sound.stop call in Web Audio (#2280)
-* BitmapData.drawGroup can now handle drawing Emitters and BitmapText objects that are part of the Group.
-* SoundManager.setTouchLock is no longer set if `SoundManager.noAudio` is true, or if the PhaserGlobal setting `disableAudio` is true (thanks @bcjordan #2206)
-* Loader.audiosprite is renamed to Loader.audioSprite (the old one still works for legacy reasons) (thanks @epaezrubio #2145)
-* EarCut now replaces PolyK, which fixes advanced Graphics mask triangulation issues such as #1941
-* Camera.checkBounds now takes the scale of the Camera into account (thanks @ForGorNorPor #2263)
-* InputHandler.consumePointerEvent has been removed, as it was never used internally anyway, so was misleading (thanks @GregoryAveryWeir #2227)
-* Events.onDragUpdate has a new 6th property `fromStart` which is a boolean. You can determine if the event was the result of the start of a drag movement or not by polling it (#2155)
-* SinglePad.onDownCallback has been moved to the end of the method, so that DeviceButton.start is now called before the callback fires, meaning if you check the status of the button in the onDownCallback it will now be fully activated (thanks @suicidepills #2159)
-* The `z` property assigned to children of a Group now starts from zero instead of 1, this is an internal change mostly but if you relied on the `z` property for some reason then please be aware of this (thanks pantoninho)
-
-### Bug Fixes
-
-* Buttons (or any Sprites) that don't have a texture, but have children, would incorrectly render the children under WebGL due to the baseTexture.skipRender property (thanks @puzzud #2141)
-* TilemapParser accidentally redeclared `i` when parsing the ImageCollections which would cause an infinite loop (thanks DanHett)
-* BitmapData.update causes a snowballing memory leak under WebGL due to a Context.getImageData call. BitmapData.clear used to call update automatically but no longer does. This resolves the issue of the Debug class causing excessive memory build-up in Chrome. Firefox and IE were unaffected (thanks @kingjerod #2208)
-* Pausing a Sound that used a Marker for playback would fire the `onMarkerComplete` signal by mistake as well as stop the fadeTween. This Signal is now only dispatched if Sound.stop is called and the Sound isn't paused (thanks Corin)
-* BitmapText.text would throw an undefined Texture error if you used a character in your text string that didn't exist in the font data.
-* Animation.stop will now stop the named animation only if the `name` argument is passed and matches the currently running animation (thanks @samme #2299 #2301)
-* TilemapParser accidentally redeclared `i` when parsing Tilemap Layers (thanks @ttencate and @aweber1  #2244 #2233 #2281)
-* Added `removeAll` to TweenManagers stub, so the call from the StageManager doesn't throw an error in a custom build (thanks @RetrocadeNet #2284)
-* Loader.binary would return a success even if the xhr'd file returned a 404 or similar (thanks @milkey-mouse @mhstar89 #2251 #2250)
-* When loading audio or video from blob or data URIs, the local variable was replaced too soon, throwing errors in `getAudioURL` and `getVideoURL` (thanks @milkey-mouse @jackfreak #2236 #2234)
-* Tween.hasStarted parameter was set to `false` when the tween was created, but not set again when the tween was stopped or ends. If `Tween.start` is used more than once the `onStart` callback is called only the first time (thanks @javivi91 #2199)
-* During a WebGL context loss the Phaser Cache was referencing the wrong local object (thanks @allenevans #2285)
-* The Video game object used an anonymous bound function for both the 'ended' and 'playing' event listeners, meaning that they were never removed properly (thanks @ramalhovfc #2303)
-* BitmapData.shiftHSL incorrectly used Math.limitValue, now updated to use Math.clamp (thanks @FracturedShader #2222)
-* The Loader was deleting the next waiting file from the queue if an asset pack was added after the load had started (thanks @tfelix #2203 #2204)
-* Specifying Phaser.ScaleManager.EXACT_FIT as the scaleMode in a game config object would fail to use the scale mode (thanks @06wj #2248)
-* BitmapText would crash if it tried to render a character that didn't exist in the font set. Any character that doesn't exist in the font set now renders a space character instead.
-* BitmapText would load and parse the kerning data from the font, but would never use it when rendering. The kerning values are now applied on rendering as well (thanks @veu #2165)
-* SinglePad.callbackContext is now set through addCallbacks method (thanks @puzzud #2161)
-* Both `transparent` and `antialias` were ignored if set to `false` in a Game configuration object, as the `parseConfig` method didn't check for falsey values (thanks @amadeus #2302)
-* GameObject.revive used to add the health amount given to the Game Object (via `heal`) instead of setting it as the new health amount. It now calls `setHealth` instead, giving it the exact amount (thanks @netgfx #2231)
-* Group.add and Group.addAt would forget to remove the child from the hash of its previous Group if it had a physics body enabled, causing unbounded hash increase (thanks @strawlion @McIntozh #2232)
-* Fixed a really nasty bug in Chrome OS X where a ctrl + click (i.e. simulated right-click) on a trackpad would lock up the Pointer leftButton, causing future clicks to fail. This is now handled by way of a mouseout listener on the window object, sadly the only way to force a mouseup in Chrome (thanks @KyleU #2286)
-* ctrl + click is now only considered a right-click if event.buttons = 1, this should allow you to use ctrl as a key modifier on Windows (and any device with a multi-button mouse attached) and still use ctrl + click on OS X / trackpads for a right-click (thanks @yuvalsv #2167)
-* If the Mouse was over a Sprite and you then clicked it, it would dispatch another Over event. This is now surpressed if the Over event has already been dispatched previously (thanks @McFarts #2133)
-* InputHandler.pointerOver could fail to return anything in some instances, now always returns a boolean.
-* Tween.onLoop would be fired when a Tween repeated and Tween.onRepeat would be fired when a Tween looped. These are now reversed to fire correctly (thanks @vladkens #2024)
-* Text with lineSpacing set wouldn't apply the lineSpacing to the final line of text in the Text string, or to text with just single lines. This could lead to incorrect height calculations for further layout and unwanted padding at the bottom of Text objects (thanks @Lopdo #2137)
-* SpriteBatch incorrectly applied the PIXI SpriteBatch prototype over the top of Phaser.Group meaning that Sprites with animations wouldn't render correctly (thanks @qdrj #1951)
-* Color.updateColor would pass `color.a` to the `getColor32` method without first putting the value into the range 0 - 255 (thanks @mainpsyhos #2327)
+* The `mouseoutglobal` event listener wasn't removed when the game was destroyed (thanks @stoneman1 #2345 #2344 #2342)
+* Fixed issue with IE crashing on this.context.close in the Sound Manager (thanks @stoneman1 #2349)
+* Phaser.World.centerX and Phaser.World.centerY only worked if the bounds had an origin of 0, 0. They now take into account the actual origin (thanks @fillmoreb #2353)
+* SoundManager.destroy now validates that context.close is a valid function before calling it (thanks @brianbunch #2355)
+* SoundManager.destroy doesn't close the context if it's being stored in PhaserGlobal (thanks @brianbunch #2356)
+* Fix typo in p2 BodyDebug.componentToHex that made most debug bodies appear reddish in color (thanks @englercj #2381)
+* Previously when a sprite was tinted and a new texture was loaded then the tint did not apply to the texture and the old tinted texture was used (thanks @CptSelewin #2383)
+* Negative lineSpacing in Text objects will no longer crop the bottom pixels off lines of text (thanks @gaelenh #2379 #2374)
+* BitmapData.copy, and by extension draw, drawFull, drawGroup, etc, would incorrectly handle drawing a tinted Sprite if it was using a frame from a texture atlas (thanks @PhaserDebugger #2405)
+* Text that used fonts which had numbers in their names wouldn't be correctly rendered unless you explicitly set the font property after creation. You can now pass font names with numbers in them as the font style object correctly (thanks @And-0 #2390)
+* Tween.update wouldn't dispatch an `onLoop` signal for Tweens with just one child, such as those created via Tween.to with -1 as the repeat value (thanks @ForgeableSum #2407)
+* Arcade.Body's speed property was only set when the body moved, it now updates regardless (thanks @mark-henry #2417)
+* Camera.position would return the view rectangles centerX/Y coordinates, instead of view.x/y (which is what Camera.x/y returns), so it has been updated to return view.x/y instead (thanks @kamparR #2120)
+* Passing a BitmapData to a TileSprite as a texture would fail if the BitmapData had not been previously added to the cache. It now uses the new frameData property (thanks @mzamateo @lucap86 #2380)
+* When setting a global volume for the SoundManager it would previously incorrectly calculate the volumes of AudioTag based Sound objects that were not played at volume 1. The new approach uses Sound.updateGlobalVolume which adjusts the Sound volume to be a percentage of the global volume. So if the global volume is 0.5 and the Sound volume is 0.5, the Sound will play with an actual volume of 0.25 (thanks @VitaZheltyakov #2325)
+* Sound.play when using an AudioTag would ignore the muted state of the SoundManager and play regardless. It now checks the SoundManager.mute state on play, and sets the volume accordingly (thanks @brianbunch #2139)
+* Graphics objects can now have a Physics Body directly attached to them, where-as before it would throw an error due to a lack of anchor property (thanks @NLilley #2400)
+* A Game Object with `fixedToCamera = true` that was then set for Input, and enabled for dragging from its center (`input.enableDrag(true)`) would throw an error upon being dragged (thanks @solusipse #2367)
+* P2.World.updateBoundsCollisionGroup wouldn't use the `boundsCollisionGroup` mask if you passed `true` as the argument, only if it was left undefined.
+* P2.World.updateBoundsCollisionGroup didn't set the `_boundsOwnGroup` private var, meaning the `World.setBounds` method wasn't able to restore previously set collision masks automatically (thanks @jmp909 #2183)
+* P2.World.setBounds has been re-written completely. If the World is resized it no longer removes the P2 body instances and re-creates them. Instead it checks to see which walls are required and then just moves the position of the shapes instead, or updates them, or creates or destroys them as required. This is far more efficient, especially in a game which sees a lot of world bounds changes (i.e. resizes responsively in browser)
+* BitmapText would throw an error if you passed in a number as the text property to the constructor. It worked if you used the text accessor directly because it cast the value to a string, but the constructor missed out this step (thanks @lewispollard #2429)
+* Dragging a Sprite while the camera was moving would slowly cause the Sprite position to become out of sync the further the camera moved. A Sprite being dragged now tracks the camera position during the drag update and adjusts accordingly (thanks @jeroenverfallie #1044)
 
 ### Pixi Updates
 
 Please note that Phaser uses a custom build of Pixi and always has done. The following changes have been made to our custom build, not to Pixi in general.
 
-* BaseTexture.destroy no longer checks for the `_pixiId` property on the canvas before removing it from the CanvasPool, meaning it's now destroying a lot more canvas elements than it was in the past!
-* TilingSprite would ignore the `renderable` property, and render it regardless. Now it skips render if `renderable` is false (thanks @Green92 #2214)
-* We have replaced the PolyK Triangulation calls within Pixi with EarCut 2.0.8. This allows for faster polygon triangulation, and also deals with more complex polygons that PolyK would crash on.
-* Graphics.arc has a new argument `segments` that allows you to control how many segments are created when the arc is drawn. The default is 40. Use a higher number for more fidelity, i.e. if you find that reversed arcs are not joining up fully (#2064)
-* PIXI.WebGLMaskManager.pushMask and popMask are now more robust in checking that they have been given valid mask data (#2152)
-* PIXI.WebGLGraphics.stencilBufferLimit is a new integer that allows you to define how many points exist in a Graphics object before Pixi swaps to using the Stencil Buffer to render it. The default is 6 but can be increased. This fixes issues with things like Quadratic curves not rendering as masks in WebGL.
-* If a Display Object with a mask contained a child with a Filter, then the child would not render. The WebGLFilterManager now retains state and creates a new stencil buffer as required (thanks @hightopo #1842)
-* The Filter Texture and GL Viewport are now properly resized, fixing issues with custom resolutions and filters (thanks @englercj @amadeus #2326 #2320)
-* Graphics.generateTexture has a new argument `padding` which allows you to add extra spacing onto the generated texture. This is useful for small Graphics objects where you find a few pixels getting sliced off the edges due to rounding issues (#1933)
-* DisplayObject._generateCachedSprite (which is called from `updateCache` or when `cacheAsBitmap` is enabled) would bitwise | 1 the bounds width and height. This would often lead to incorrect rounding (heights of 4 would become 5, while heights of 5 would remain 5). This has now been removed and the width and height are passed through Math.ceil and then checked to make sure they aren't less than 1 pixel in either direction (thanks @alesdotio #2078)
+* DisplayObjectContainer.getLocalBounds destroys the worldTransforms on children until the next `stage.updateTransform()` call. This can make a number of things break including mouse input if width, height or getLocalBounds methods are called inside of an update or preUpdate method. This is now fixed in our Pixi build (thanks @st0nerhat #2357)
+* PIXI.CanvasRenderer.resize now applies the `renderSession.smoothProperty` to the Canvas context when it resizes. This should help with unwanted canvas smoothing (thanks @sergey7c4 #2395 #2317)
 
 For changes in previous releases please see the extensive [Version History](https://github.com/photonstorm/phaser/blob/master/CHANGELOG.md).
 
@@ -470,10 +464,10 @@ All rights reserved.
 
 [![Analytics](https://ga-beacon.appspot.com/UA-44006568-2/phaser/index)](https://github.com/igrigorik/ga-beacon)
 
-[get-js]: https://github.com/photonstorm/phaser/releases/download/v2.4.6/phaser.js
-[get-minjs]: https://github.com/photonstorm/phaser/releases/download/v2.4.6/phaser.min.js
-[get-zip]: https://github.com/photonstorm/phaser/archive/v2.4.6.zip
-[get-tgz]: https://github.com/photonstorm/phaser/archive/v2.4.6.tar.gz
+[get-js]: https://github.com/photonstorm/phaser/releases/download/v2.4.7/phaser.js
+[get-minjs]: https://github.com/photonstorm/phaser/releases/download/v2.4.7/phaser.min.js
+[get-zip]: https://github.com/photonstorm/phaser/archive/v2.4.7.zip
+[get-tgz]: https://github.com/photonstorm/phaser/archive/v2.4.7.tar.gz
 [clone-http]: https://github.com/photonstorm/phaser.git
 [clone-ssh]: git@github.com:photonstorm/phaser.git
 [clone-svn]: https://github.com/photonstorm/phaser

@@ -40,14 +40,14 @@
       "typescript/pixi.comments.d.ts"
     ]
   },
-  "version": "2.4.6",
-  "_release": "2.4.6",
+  "version": "2.4.7",
+  "_release": "2.4.7",
   "_resolution": {
     "type": "version",
-    "tag": "v2.4.6",
-    "commit": "47123c192df7f3a78ac25110a9a72b72f61417c2"
+    "tag": "v2.4.7",
+    "commit": "a29cc649327fe57e4eb0c2b89813aadf33ab6e5b"
   },
-  "_source": "git://github.com/photonstorm/phaser.git",
-  "_target": "2.4.6",
+  "_source": "https://github.com/photonstorm/phaser.git",
+  "_target": "2.4.7",
   "_originalSource": "phaser-official"
 }

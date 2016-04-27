@@ -1,6 +1,6 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2015 Photon Storm Ltd.
+* @copyright    2016 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -9,6 +9,10 @@
 *
 * _Note_: many keyboards are unable to process certain combinations of keys due to hardware limitations known as ghosting.
 * See http://www.html5gamedevs.com/topic/4876-impossible-to-use-more-than-2-keyboard-input-buttons-at-the-same-time/ for more details.
+*
+* Also please be aware that certain browser extensions can disable or override Phaser keyboard handling.
+* For example the Chrome extension vimium is known to disable Phaser from using the D key. And there are others.
+* So please check your extensions before opening Phaser issues.
 *
 * @class Phaser.Keyboard
 * @constructor
