@@ -26,7 +26,7 @@ GameOver.prototype = {
 
     //new high score text
     var gameScore = this.game.global.score + this.game.global.scoreBuffer;
-    this.congratsTextString = "Score: "+ gameScore +", Level: "+ this.game.global.level + "\n";
+    var congratsTextString = "Score: "+ gameScore +" Level: "+ this.game.global.level + "\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
         var highscore_txt = "High Score: ";
@@ -37,7 +37,7 @@ GameOver.prototype = {
           highscore_txt = "New "+highscore_txt;
         }
 
-        this.congratsTextString += highscore_txt+max;
+        congratsTextString += highscore_txt+max;
 
         //reset stored game state
         localStorage["level"] = 0;
@@ -46,12 +46,16 @@ GameOver.prototype = {
     }
 
     //generic good job text
-    this.congratsText = this.game.add.text(this.game.world.centerX,  0, this.congratsTextString, this.game.global.text_font_style);
+    this.congratsText = this.game.add.text(this.game.world.centerX,  0, congratsTextString, this.game.global.text_font_style);
     this.congratsText.anchor.setTo(0.5, 0.5);
     this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Better luck next time', this.game.global.text_font_style);
+    var instructionTxt = "Better luck next time";
+    if(congratsTextString.toLowerCase().indexOf("new") >= 0){ //User got a new High score!
+      instructionTxt = "Great job!"
+    }
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, instructionTxt, this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 

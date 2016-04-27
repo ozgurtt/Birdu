@@ -44,7 +44,11 @@ sudo apt-add-repository ppa:paolorotolo/android-studio #Project for auto-install
 sudo apt-get update
 sudo apt-get install android-studio
 /opt/android-studio/bin/studio.sh #Must open AS and do the first time setup, in order to install the SDK correctly
-sed -i '1s/^/export ANDROID_HOME="\/home\/james\/Android\/Sdk\/"\n/' ~/.bashrc #need to export ANDROID_HOME to bash's PATH. Use 'sed' to insert a ANDROID_HOME's path into the bashrc profile, permanently adding this path variable. You can check your bashrc with 'nano ~/.bashrc', and the ANDROID_HOME should be the first line
+sed -i '1s/^/export PATH=$ANDROID_HOME\/platform-tools:$PATH \n/' ~/.bashrc #export android paths
+sed -i '1s/^/export PATH=$ANDROID_HOME\/tools:$PATH \n/' ~/.bashrc
+sed -i '1s/^/export ANDROID_HOME="\/home\/james\/Android\/Sdk\/" \n/' ~/.bashrc #need to export ANDROID_HOME to bash's PATH. Use 'sed' to insert a ANDROID_HOME's path into the bashrc profile, permanently adding this path variable. You can check your bashrc with 'nano ~/.bashrc', and the ANDROID_HOME should be the first line
+sed -i '1s/^/export PATH=$ANDROID_HOME\/tools:$PATH \n/' ~/.bashrc
+
 /home/james/Android/Sdk/tools/android #Open SDK Manager and install a bunch of required tools
 #Now you're set to compile Cordova to Android projects!
 ```
