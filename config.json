@@ -1,0 +1,5 @@
+{
+  "projectName": "birdu",
+  "gameWidth": "window.innerWidth",
+  "gameHeight": "window.innerHeight"
+}

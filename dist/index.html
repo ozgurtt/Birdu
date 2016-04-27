@@ -1,0 +1,42 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html> <!--<![endif]-->
+<head>
+  <meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, minimal-ui" />
+  <title>birdu</title>
+  <link href="css/styles.css" rel="stylesheet" type="text/css">
+
+
+
+  <!-- A thingy added for Cordova (apps that will be compiled to native systems). Ensures unsafe scripts are not loaded
+      https://github.com/apache/cordova-plugin-whitelist
+
+      Good default declaration:
+      * gap: is required only on iOS (when using UIWebView) and is needed for JS->native communication
+      * https://ssl.gstatic.com is required only on Android and is needed for TalkBack to function properly
+      * Disables use of eval() and inline scripts in order to mitigate risk of XSS vulnerabilities. To change this:
+          * Enable inline JS: add 'unsafe-inline' to default-src
+          * Enable eval(): add 'unsafe-eval' to default-src
+  -->
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *"/>
+
+  <!-- Load Phaser and the game JS before cordova APIs so that Cordova APIs can access the game object-->
+  <script src="js/phaser.js"></script>
+  <script src="js/game.js"></script>
+
+  <script type="text/javascript" charset="utf-8" src="cordova.js"></script> <!-- This file will be auto-included when building with cordova. It's required for using Cordova API's -->
+</head>
+<body>
+  <p class="font-loader">
+    This class is only here to force fonts to load for the game,
+    otherwise a refresh is required in Firefox and they won't work at all in chrome.
+    The CSS sheet hides this immediately.
+  </p>
+  <div id="birdu"></div>
+
+</body>
+</html>

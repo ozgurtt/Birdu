@@ -1,0 +1,17 @@
+Images:
+'background.png' :: http://opengameart.org/content/cartoony-cloud-images
+all birds in 'birds/' directory from bevouliin (http://bevouliin.com), found on http://opengameart.org
+preloader.gif from phaser-official (yeoman) github project
+Chicken body/meat :: http://opengameart.org/content/shadowless-lpc-food
+Pause Icon :: https://design.google.com/icons/index.html#ic_pause
+Play Icon :: https://design.google.com/icons/index.html#ic_play_arrow
+
+Audio:
+Bite_scary sound :: https://www.freesound.org/people/ggctuk/sounds/80551/
+Bite_friendly sound :: https://www.freesound.org/people/orginaljun/sounds/152313/
+The Plucked Bird :: http://opengameart.org/content/the-plucked-bird-nes-version
+levelup :: https://www.freesound.org/people/LittleRobotSoundFactory/sounds/270404/
+tweet :: https://www.freesound.org/people/Andreas.Mustola/sounds/338277/
+
+Font:
+Paper Cuts :: http://www.dafont.com/paper-cuts.font
