@@ -73,11 +73,20 @@ Preload.prototype = {
   //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
   //for this game I utilized wav, ogg, and mp3 (in that order)
   arrayOfCompatibleMusicFileNames: function(key){
-    var aud = 'assets/audio/'
-    var wav = aud + 'wav/';
-    var ogg = aud + 'ogg/';
+    if(this.game.device.android){
+      //old android verions cannot read www/assets, they require audio+video being loaded from the resource's 'raw' folder
+      var aud = 'android.resource://' + this.game.global.package_name +'/raw/' + key;
+      var wav = aud + "_wav";
+      var ogg = aud + "_ogg";
+      //need to tell Phaser the type of audio, since it cannot see it from file extension. Extension is missing just because Android requires this in order to load the file
+      return [{uri: ogg, type: 'ogg'}, {uri: wav, type: 'wav'}];
+    }else{
+      var aud = 'assets/audio';
+      var wav = aud + 'wav/' +key+ "_wav" + ".wav";
+      var ogg = aud + 'ogg/' +key+ "_ogg" + ".ogg";
 
-    return [ogg+key+".ogg",wav+key+".wav"]
+      return [ogg, wav];
+    }
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

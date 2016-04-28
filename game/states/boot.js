@@ -5,6 +5,8 @@ function Boot() {}
 
 Boot.prototype = {
   preload: function() {
+    console.log(navigator.userAgent);
+
     this.load.image('preloader', 'assets/preloader.gif');
 
     //force game to fill up screen
@@ -38,6 +40,7 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      package_name: "com.jtronlabs.birdu",
       fps_of_flapping_sprites: 9,
       score: Number(localStorage["currentGameScore"]) || 0,
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
