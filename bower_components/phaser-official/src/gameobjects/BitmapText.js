@@ -1,6 +1,6 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2016 Photon Storm Ltd.
+* @copyright    2015 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -113,7 +113,7 @@ Phaser.BitmapText = function (game, x, y, font, text, size, align) {
     * @property {string} _text - Internal cache var.
     * @private
     */
-    this._text = text.toString() || '';
+    this._text = text;
 
     /**
     * @property {string} _data - Internal cache var.

@@ -213,16 +213,13 @@ PIXI.Strip.prototype._renderCanvas = function(renderSession)
 
     var transform = this.worldTransform;
 
-    var tx = (transform.tx * renderSession.resolution) + renderSession.shakeX;
-    var ty = (transform.ty * renderSession.resolution) + renderSession.shakeY;
-
     if (renderSession.roundPixels)
     {
-        context.setTransform(transform.a, transform.b, transform.c, transform.d, tx | 0, ty | 0);
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx | 0, transform.ty | 0);
     }
     else
     {
-        context.setTransform(transform.a, transform.b, transform.c, transform.d, tx, ty);
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     }
 
     if (this.drawMode === PIXI.Strip.DrawModes.TRIANGLE_STRIP)

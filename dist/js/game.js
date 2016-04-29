@@ -414,8 +414,6 @@ function Boot() {}
 
 Boot.prototype = {
   preload: function() {
-    console.log(navigator.userAgent);
-
     this.load.image('preloader', 'assets/preloader.gif');
 
     //force game to fill up screen
@@ -437,7 +435,7 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        game.state.states.play.levelup_sound.play();
+        game.audio.levelup.play();
         game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
@@ -449,9 +447,50 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
-      package_name: "com.jtronlabs.birdu",
+      //function for preloading and playing short and looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      playAudio: function(key,game,special_arg){
+        if( typeof Media != "undefined" ){ //play audio with Cordova Media plugin, as the 'Media' object is defined
+          if(special_arg != "preload"){ //I don't think you can preload with cordova media plugin
+            var src = this.arrayOfCompatibleMusicFileNames(key)[0];
+            var my_media = new Media(src);
+
+            if(special_arg == "loop"){ //create a callback function for when media completes that loops it
+                var loop = function () {  myMedia.play();console.log("WHAT IS THIS????? THIS IS ::: "+this); };
+                var log = function(status) { console.log("LOOPING MEDIA STATUS IS :: "+status); };
+                my_media = new Media(src,loop,null,log);
+            }
+
+            my_media.play();
+          }
+        }else{//play audio with with Phaser engine
+          if(special_arg == 'preload'){
+            game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) );
+          }
+          else{
+            var aud = game.add.audio(key);
+            if(special_arg == 'loop'){
+              aud.loopFull();
+            }else{
+              aud.play();
+            }
+          }
+        }
+      },
+      //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
+      //for this game I utilized wav, ogg, and mp3 (in that order)
+      arrayOfCompatibleMusicFileNames: function(key){
+        //old versions of android require an absolute pathname (instead of relative) for audio. This is a generic solution for all devices
+        var path = window.location.pathname;
+        path = path.substr( 0, path.lastIndexOf("/") ); //need to remove 'index.html' from the end of pathname
+        var aud = path+'/assets/audio/';
+
+        var wav = aud + 'wav/' + key + ".wav";
+        var ogg = aud + 'ogg/' + key + ".ogg";
+
+        return [ogg,wav];
+      },
       fps_of_flapping_sprites: 9,
-      score: Number(localStorage["currentGameScore"]) || 0,
+      score: Number(localStorage["currentGameScore"]) || 0, //If save state is enabled when play is paused, then this will load from stoage instead of memory
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
       hero_movement_speed: 120,
       hero_sprite_number: 28,
@@ -520,19 +559,19 @@ GameOver.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    var gameScore = this.game.global.score + this.game.global.scoreBuffer;
-    var congratsTextString = "Score: "+ gameScore +" Level: "+ this.game.global.level + "\n";
+    this.congratsTextString = "Better luck next time.\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
         var highscore_txt = "High Score: ";
 
+        var gameScore = this.game.global.score + this.game.global.scoreBuffer;
         if (gameScore > max){
           localStorage["maxScore"] = gameScore;
           max = gameScore;
           highscore_txt = "New "+highscore_txt;
         }
 
-        congratsTextString += highscore_txt+max;
+        this.congratsTextString += highscore_txt+max;
 
         //reset stored game state
         localStorage["level"] = 0;
@@ -541,16 +580,12 @@ GameOver.prototype = {
     }
 
     //generic good job text
-    this.congratsText = this.game.add.text(this.game.world.centerX,  0, congratsTextString, this.game.global.text_font_style);
+    this.congratsText = this.game.add.text(this.game.world.centerX,  0, this.congratsTextString, this.game.global.text_font_style);
     this.congratsText.anchor.setTo(0.5, 0.5);
     this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    var instructionTxt = "Better luck next time";
-    if(congratsTextString.toLowerCase().indexOf("new") >= 0){ //User got a new High score!
-      instructionTxt = "Great job!"
-    }
-    this.instructionText = this.game.add.text(this.game.world.centerX, 0, instructionTxt, this.game.global.text_font_style);
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 
@@ -616,8 +651,7 @@ Menu.prototype = {
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
-    this.background_music = this.game.add.audio('background-music');
-    this.background_music.loopFull(0.5);
+    this.game.global.playAudio('background_music',this.game,"loop");
 
     //ensure that no text is too wide for the screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
@@ -721,14 +755,9 @@ module.exports = Menu;
       this.enemyGenerator.timer.start();
 
       //load audio
-      this.eat_sound = this.game.add.audio('bite_friendly');
-      this.eaten_sound = this.game.add.audio('bite_scary');
-      this.lose_sound = this.game.add.audio('lose');
-      this.tweet_sound = this.game.add.audio('tweet');
-      this.tweet_sound.play();
+      this.game.global.playAudio("tweet",this.game);
 
       //things to be shown upon leveling up
-      this.levelup_sound = this.game.add.audio('levelup');
       this.levelup_text = this.game.add.text(this.game.world.centerX,0,
         "Level Up",
         this.game.global.score_font_style);
@@ -748,6 +777,13 @@ module.exports = Menu;
 
         this.pause_text.visible = true; //open 'pause menu'
 
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.pause();
+          }
+        }
+
         //this.saveGameState();
 
         this.game.paused = true; //actually pause the game
@@ -762,12 +798,20 @@ module.exports = Menu;
       }
     },
     resumeGame: function(){
+      console.log('Gameplay has resumed');
       if(this.game.paused){
         this.pause_icon.loadTexture('pause');
 
         this.pause_text.visible = false;
 
         this.game.paused = false;
+
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
+        if(this.game.global.use_cordova_media_plugin){
+          for( var audio in this.game.audio){
+            audio.play();
+          }
+        }
       }
     },
     update: function() {
@@ -805,7 +849,7 @@ module.exports = Menu;
 
       //if the hero is bigger than enemy (which is one of the collision objects), then he grows a bit. If he is smaller than it is game over
       if(hero_area > enemy_area){
-        this.eat_sound.play();
+        this.game.global.playAudio("bite_friendly",this.game);
         //increase hero's size and show some cool animations when he eats
         this.hero.sizeIncrease(enemy_area);
         this.hero.showCrumbs();
@@ -845,7 +889,7 @@ module.exports = Menu;
         this.enemyGenerator.delay = this.enemySpawnDelay();
       }
       else{
-        this.eaten_sound.play();
+        this.game.global.playAudio("bite_scary",this.game);
         this.game.state.start('gameover',true,false);
       }
     },
@@ -967,35 +1011,17 @@ Preload.prototype = {
     this.load.spritesheet('b-9', 'assets/birds/b-9.png', 120.00000000000000000000, 94);
 
     //load static images
-    this.load.image('meat', 'assets/meat.png');
-    this.load.image('play', 'assets/icon_play.png');
-    this.load.image('pause', 'assets/icon_pause.png');
+    this.load.image('meat',       'assets/meat.png');
+    this.load.image('play',       'assets/icon_play.png');
+    this.load.image('pause',      'assets/icon_pause.png');
     this.load.image('background', 'assets/background.png');
 
-    //load sounds - the second parameter is an array containing the same audio file but in different formats.
-    this.load.audio('bite_friendly', this.arrayOfCompatibleMusicFileNames('bite_friendly') );
-    this.load.audio('bite_scary', this.arrayOfCompatibleMusicFileNames('bite_scary') );
-    this.load.audio('tweet', this.arrayOfCompatibleMusicFileNames('tweet') );
-    this.load.audio('levelup', this.arrayOfCompatibleMusicFileNames('levelup') );
-    this.load.audio('background-music', this.arrayOfCompatibleMusicFileNames('the_plucked_bird') );
-  },
-  //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
-  //for this game I utilized wav, ogg, and mp3 (in that order)
-  arrayOfCompatibleMusicFileNames: function(key){
-    if(this.game.device.android){
-      //old android verions cannot read www/assets, they require audio+video being loaded from the resource's 'raw' folder
-      var aud = '/android.resource://' + this.game.global.package_name +'/raw/' + key;
-      var wav = aud + "_wav";
-      var ogg = aud + "_ogg";
-      //need to tell Phaser the type of audio, since it cannot see it from file extension. Extension is missing just because Android requires this in order to load the file
-      return [{uri: ogg, type: 'ogg'}, {uri: wav, type: 'wav'}];
-    }else{
-      var aud = 'assets/audio';
-      var wav = aud + 'wav/' +key+ "_wav" + ".wav";
-      var ogg = aud + 'ogg/' +key+ "_ogg" + ".ogg";
-
-      return [ogg, wav];
-    }
+    //Preload audio
+    this.game.global.playAudio('bite_friendly',this.game,   'preload');
+    this.game.global.playAudio('bite_scary',this.game,      'preload');
+    this.game.global.playAudio('tweet',this.game,           'preload');
+    this.game.global.playAudio('levelup',this.game,         'preload');
+    this.game.global.playAudio('background_music',this.game,'preload');
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

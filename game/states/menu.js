@@ -40,8 +40,7 @@ Menu.prototype = {
     this.instructionsText.anchor.setTo(0.5, 0.5);
 
     //start game's music
-    this.background_music = this.game.add.audio('background-music');
-    this.background_music.loopFull(0.5);
+    this.game.global.playAudio('background_music',this.game,"loop");
 
     //ensure that no text is too wide for the screen
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);

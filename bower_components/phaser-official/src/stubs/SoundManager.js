@@ -1,6 +1,6 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2016 Photon Storm Ltd.
+* @copyright    2015 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -9,9 +9,7 @@
 * It allows you to exclude the default Sound Manager from your build, without making Game crash.
 */
 
-Phaser.SoundManager = function () {
-    this.muteOnPause = false;
-};
+Phaser.SoundManager = function () {};
 
 Phaser.SoundManager.prototype.boot = function () {};
 Phaser.SoundManager.prototype.update = function () {};

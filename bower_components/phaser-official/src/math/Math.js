@@ -1,6 +1,6 @@
 /**
 * @author       Richard Davey <rich@photonstorm.com>
-* @copyright    2016 Photon Storm Ltd.
+* @copyright    2015 Photon Storm Ltd.
 * @license      {@link https://github.com/photonstorm/phaser/blob/master/license.txt|MIT License}
 */
 
@@ -896,29 +896,16 @@ Phaser.Math = {
     },
 
     /**
-    * Force a value within the boundaries by clamping it to the range `min`, `max`.
+    * Force a value within the boundaries by clamping `x` to the range `[a, b]`.
     *
     * @method Phaser.Math#clamp
-    * @param {float} v - The value to be clamped.
-    * @param {float} min - The minimum bounds.
-    * @param {float} max - The maximum bounds.
-    * @return {number} The clamped value.
+    * @param {number} x
+    * @param {number} a
+    * @param {number} b
+    * @return {number}
     */
-    clamp: function (v, min, max) {
-
-        if (v < min)
-        {
-            return min;
-        }
-        else if (max < v)
-        {
-            return max;
-        }
-        else
-        {
-            return v;
-        }
-
+    clamp: function (x, a, b) {
+        return ( x < a ) ? a : ( ( x > b ) ? b : x );
     },
 
     /**
@@ -967,29 +954,24 @@ Phaser.Math = {
     * Smoothstep function as detailed at http://en.wikipedia.org/wiki/Smoothstep
     *
     * @method Phaser.Math#smoothstep
-    * @param {float} x - The input value.
-    * @param {float} min - The left edge. Should be smaller than the right edge.
-    * @param {float} max - The right edge.
-    * @return {float} A value between 0 and 1.
+    * @param {number} x
+    * @param {number} min
+    * @param {number} max
+    * @return {number}
     */
     smoothstep: function (x, min, max) {
-
-        // Scale, bias and saturate x to 0..1 range
         x = Math.max(0, Math.min(1, (x - min) / (max - min)));
-
-        // Evaluate polynomial
         return x * x * (3 - 2 * x);
-
     },
 
     /**
     * Smootherstep function as detailed at http://en.wikipedia.org/wiki/Smoothstep
     *
     * @method Phaser.Math#smootherstep
-    * @param {float} x - The input value.
-    * @param {float} min - The left edge. Should be smaller than the right edge.
-    * @param {float} max - The right edge.
-    * @return {float} A value between 0 and 1.
+    * @param {number} x
+    * @param {number} min
+    * @param {number} max
+    * @return {number}
     */
     smootherstep: function (x, min, max) {
         x = Math.max(0, Math.min(1, (x - min) / (max - min)));
@@ -1054,7 +1036,7 @@ Phaser.Math.degToRad = function degToRad (degrees) {
 };
 
 /**
-* Convert radians to degrees.
+* Convert degrees to radians.
 *
 * @method Phaser.Math#radToDeg
 * @param {number} radians - Angle in radians.

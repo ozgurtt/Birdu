@@ -5,8 +5,6 @@ function Boot() {}
 
 Boot.prototype = {
   preload: function() {
-    console.log(navigator.userAgent);
-
     this.load.image('preloader', 'assets/preloader.gif');
 
     //force game to fill up screen
@@ -28,7 +26,7 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        game.state.states.play.levelup_sound.play();
+        game.audio.levelup.play();
         game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
@@ -40,9 +38,50 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
-      package_name: "com.jtronlabs.birdu",
+      //function for preloading and playing short and looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      playAudio: function(key,game,special_arg){
+        if( typeof Media != "undefined" ){ //play audio with Cordova Media plugin, as the 'Media' object is defined
+          if(special_arg != "preload"){ //I don't think you can preload with cordova media plugin
+            var src = this.arrayOfCompatibleMusicFileNames(key)[0];
+            var my_media = new Media(src);
+
+            if(special_arg == "loop"){ //create a callback function for when media completes that loops it
+                var loop = function () {  myMedia.play();console.log("WHAT IS THIS????? THIS IS ::: "+this); };
+                var log = function(status) { console.log("LOOPING MEDIA STATUS IS :: "+status); };
+                my_media = new Media(src,loop,null,log);
+            }
+
+            my_media.play();
+          }
+        }else{//play audio with with Phaser engine
+          if(special_arg == 'preload'){
+            game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) );
+          }
+          else{
+            var aud = game.add.audio(key);
+            if(special_arg == 'loop'){
+              aud.loopFull();
+            }else{
+              aud.play();
+            }
+          }
+        }
+      },
+      //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
+      //for this game I utilized wav, ogg, and mp3 (in that order)
+      arrayOfCompatibleMusicFileNames: function(key){
+        //old versions of android require an absolute pathname (instead of relative) for audio. This is a generic solution for all devices
+        var path = window.location.pathname;
+        path = path.substr( 0, path.lastIndexOf("/") ); //need to remove 'index.html' from the end of pathname
+        var aud = path+'/assets/audio/';
+
+        var wav = aud + 'wav/' + key + ".wav";
+        var ogg = aud + 'ogg/' + key + ".ogg";
+
+        return [ogg,wav];
+      },
       fps_of_flapping_sprites: 9,
-      score: Number(localStorage["currentGameScore"]) || 0,
+      score: Number(localStorage["currentGameScore"]) || 0, //If save state is enabled when play is paused, then this will load from stoage instead of memory
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
       hero_movement_speed: 120,
       hero_sprite_number: 28,

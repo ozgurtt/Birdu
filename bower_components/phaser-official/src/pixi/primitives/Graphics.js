@@ -804,15 +804,13 @@ PIXI.Graphics.prototype._renderCanvas = function(renderSession)
         }
 
         var resolution = renderSession.resolution;
-        var tx = (transform.tx * renderSession.resolution) + renderSession.shakeX;
-        var ty = (transform.ty * renderSession.resolution) + renderSession.shakeY;
 
         context.setTransform(transform.a * resolution,
                              transform.b * resolution,
                              transform.c * resolution,
                              transform.d * resolution,
-                             tx,
-                             ty);
+                             transform.tx * resolution,
+                             transform.ty * resolution);
 
         PIXI.CanvasGraphics.renderGraphics(this, context);
 
