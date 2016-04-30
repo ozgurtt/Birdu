@@ -64,11 +64,11 @@ Preload.prototype = {
     this.load.image('background', 'assets/background.png');
 
     //Preload audio
-    this.game.global.playAudio('bite_friendly',this.game,   'preload');
-    this.game.global.playAudio('bite_scary',this.game,      'preload');
-    this.game.global.playAudio('tweet',this.game,           'preload');
-    this.game.global.playAudio('levelup',this.game,         'preload');
-    this.game.global.playAudio('background_music',this.game,'preload');
+    this.game.global.preloadAudio('bite_friendly',this.game);
+    this.game.global.preloadAudio('bite_scary',this.game);
+    this.game.global.preloadAudio('tweet',this.game);
+    this.game.global.preloadAudio('levelup',this.game);
+    this.game.global.preloadAudio('background_music',this.game);
   },
   create: function() {
     this.loading_bar.cropEnabled = false;

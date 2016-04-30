@@ -93,17 +93,10 @@
     pauseGame: function() {
       if(!this.game.paused){
         console.log('Gameplay has paused');
-        
+
         this.pause_icon.loadTexture('play'); //load a different image for play/pause icon
 
         this.pause_text.visible = true; //open 'pause menu'
-
-        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
-        if(this.game.global.use_cordova_media_plugin){
-          for( var audio in this.game.audio){
-            audio.pause();
-          }
-        }
 
         //this.saveGameState();
 
@@ -119,20 +112,15 @@
       }
     },
     resumeGame: function(){
-      console.log('Gameplay has resumed');
+      //the way the click listener is setup, this function is called on every tap/click.
+      //Thus need to ensure it only fires when game is actually paused
       if(this.game.paused){
+        console.log('Gameplay has resumed');
         this.pause_icon.loadTexture('pause');
 
         this.pause_text.visible = false;
 
         this.game.paused = false;
-
-        //For devices that use cordova-media-plugin instead of Phaser, must pause audio
-        if(this.game.global.use_cordova_media_plugin){
-          for( var audio in this.game.audio){
-            audio.play();
-          }
-        }
       }
     },
     update: function() {

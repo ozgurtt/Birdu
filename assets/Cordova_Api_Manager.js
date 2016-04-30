@@ -38,6 +38,13 @@ Cordova_Api_Manager.prototype = {
           game.state.states.play.pauseGame(); //call the play state's pauseGame function
         }
 
+        //For devices that use cordova-media-plugin instead of Phaser, must pause audio (Phaser pauses audio in pauseGame)
+        if(game.global.use_cordova_media_plugin() ){
+          for(var key in game.global.playable_audio_hash){
+            game.global.get_audio_file(key,null,game).stop();
+          }
+        }
+
         game.paused = true; //pause the game last (since previous functions may modify the game or UI)
       }
     },
@@ -47,6 +54,11 @@ Cordova_Api_Manager.prototype = {
 
         if( game.state.current != "play" ){//if play state is NOT active, avoid resuming the game (allow the user to resume it)
           game.paused = false; //actually resume the game
+        }
+
+        //For devices that use cordova-media-plugin instead of Phaser, must manually start each desired audio over when game resumes (Phaser handles this much better on its own)
+        if(this.game.global.use_cordova_media_plugin() ){
+          this.game.global.playAudio('background_music',this.game,true);
         }
       }
     }

@@ -26,8 +26,8 @@ Boot.prototype = {
       levelUp: function(game,hero,enemies){
         this.level ++;
 
-        game.audio.levelup.play();
-        game.state.states.boot.playLevelUpTweens(game, game.state.states.play.levelup_text);
+        game.global.playAudio("levelup",game);
+        game.global.playLevelUpTweens(game, game.state.states.play.levelup_text);
 
         //update hero's size, sprite, speed, etc as necessary
         var shrinkToOriginalSize = game.add.tween(hero.scale).to({ x: this.original_hero_scale * this.sign(hero.scale.x) , y: this.original_hero_scale}, 500, Phaser.Easing.Linear.In);
@@ -35,36 +35,72 @@ Boot.prototype = {
 
         this.hero_movement_speed = Math.min(225,this.hero_movement_speed + 20);
       },
+      playLevelUpTweens: function(game,textObj){
+        textObj.scale.setTo(2,2);
+        textObj.angle = -10;
+        textObj.visible = true;
+
+        //tween in the level up text, and hide + reset it on completion
+        this.levelup_text_grow_tween = game.add.tween(textObj.scale)
+          .from({x:0.1, y: 0.1}, 1000, Phaser.Easing.Linear.None, true)
+        this.levelup_text_rotate_tween = game.add.tween(textObj)
+          .to({angle: 10}, 100, Phaser.Easing.Linear.None, true, 0, -1, true);
+
+        this.levelup_text_grow_tween.onComplete.add(function(){
+          textObj.scale.setTo(1.5,1.5);
+          textObj.angle = -10;
+          textObj.visible = false;
+          this.levelup_text_rotate_tween.stop();
+        },this);
+      },
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      preloadAudio: function(key,game){
+        if(!game.global.use_cordova_media_plugin()){//create audio with with Phaser engine
+          game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) ); //use the key to create the filepath source URL
+        }
+        //no way to preload cordova-media-plugin audio (I think - setting and playing a zero volume did not work)
+      },
+      //function to instantiate or get a playable audio file
+      get_audio_file: function(audio_file_key_name,instantiateAudioFunction,game){
+        var playable_audio;
+        if(audio_file_key_name in game.global.playable_audio_hash){//search a hash to see if the audio already exists. if it does, return it
+          playable_audio = game.global.playable_audio_hash[audio_file_key_name];
+        }else{ //call the passed in instantiation function: create some playable audio. Save it to the hash
+          playable_audio = instantiateAudioFunction(audio_file_key_name);
+          game.global.playable_audio_hash[audio_file_key_name] = playable_audio;
+        }
+        return playable_audio; //return the playable audio
+      },
       //function for preloading and playing short and looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
-      playAudio: function(key,game,special_arg){
-        if( typeof Media != "undefined" ){ //play audio with Cordova Media plugin, as the 'Media' object is defined
-          if(special_arg != "preload"){ //I don't think you can preload with cordova media plugin
-            var src = this.arrayOfCompatibleMusicFileNames(key)[0];
-            var my_media = new Media(src);
+      playAudio: function(key,game,isLoop){
+        if(!game.global.playable_audio_hash){game.global.playable_audio_hash = {};} //define a hash to hold the playable audio we will create and use
 
-            if(special_arg == "loop"){ //create a callback function for when media completes that loops it
-                var loop = function () {  myMedia.play();console.log("WHAT IS THIS????? THIS IS ::: "+this); };
-                var log = function(status) { console.log("LOOPING MEDIA STATUS IS :: "+status); };
-                my_media = new Media(src,loop,null,log);
+        var instantiateAudioFunction;
+        if( game.global.use_cordova_media_plugin()){ //create playable audio with cordova-media-plugin
+          instantiateAudioFunction = function(audio_key){
+            var src = game.global.arrayOfCompatibleMusicFileNames(audio_key)[0];//use the key to create the filepath source URL
+            var loop = null;
+            if(isLoop){
+              //can safely call get_audio_file with only key/name, as this looping function will only execute after the relevant audio has been created (played at least 1x)
+              loop = function () {  game.global.get_audio_file(audio_key,null,game).play(); };
             }
+            return new Media(src,loop);
+          }
+        }
+        else{//create playable audio with with Phaser engine
+          instantiateAudioFunction = function(audio_key){
+            return game.add.audio(audio_key);
+          }
+        }
 
-            my_media.play();
-          }
-        }else{//play audio with with Phaser engine
-          if(special_arg == 'preload'){
-            game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) );
-          }
-          else{
-            var aud = game.add.audio(key);
-            if(special_arg == 'loop'){
-              aud.loopFull();
-            }else{
-              aud.play();
-            }
-          }
+        //actually play the audio
+        var aud = game.global.get_audio_file(key,instantiateAudioFunction,game);
+        if(isLoop && !game.global.use_cordova_media_plugin()){//need a special case to loop with Phaser. Looping with CMP is covered in creation of the Media
+          aud.loopFull();
+        }else{//call Phaser and cordova-media-plugin's play method in the same way
+          aud.play();
         }
       },
       //Phaser has support to load in multiple types of audio formats if the first supplied in the array is not compatible with the browser.
@@ -73,13 +109,15 @@ Boot.prototype = {
         //old versions of android require an absolute pathname (instead of relative) for audio. This is a generic solution for all devices
         var path = window.location.pathname;
         path = path.substr( 0, path.lastIndexOf("/") ); //need to remove 'index.html' from the end of pathname
-        var aud = path+'/assets/audio/';
+        var audio_path = path+'/assets/audio/';
 
-        var wav = aud + 'wav/' + key + ".wav";
-        var ogg = aud + 'ogg/' + key + ".ogg";
+        var wav = audio_path + 'wav/' + key + ".wav";
+        var ogg = audio_path + 'ogg/' + key + ".ogg";
 
         return [ogg,wav];
       },
+      use_cordova_media_plugin: function(){ return (typeof Media != "undefined") },//must be a function: setting it before Cordova API loads will cause it to be false.
+      playable_audio_hash: {},
       fps_of_flapping_sprites: 9,
       score: Number(localStorage["currentGameScore"]) || 0, //If save state is enabled when play is paused, then this will load from stoage instead of memory
       scoreBuffer: Number(localStorage["currentGameScoreBuffer"]) || 0,
@@ -89,29 +127,13 @@ Boot.prototype = {
       level_up_hero_area: 9200,
       original_hero_scale: .3,
       default_time_btw_enemy_spawns: Phaser.Timer.SECOND * .4,
+
+      //FONTS BELOW
       title_font_style:{ font: '82px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:6},
       text_font_style:{ font: '28px papercuts', fill: '#ffffff', align: 'center', stroke:"#000000", strokeThickness:3},
       score_font_style:{ font: "45px papercuts", fill: "#ffffff", stroke: "#535353", strokeThickness: 10},
       score_animating_font_style:{font: "15px papercuts", fill: "#39d179", stroke: "#ffffff", strokeThickness: 4}
     };
-  },
-  playLevelUpTweens: function(game,textObj){
-    textObj.scale.setTo(2,2);
-    textObj.angle = -10;
-    textObj.visible = true;
-
-    //tween in the level up text, and hide + reset it on completion
-    this.levelup_text_grow_tween = game.add.tween(textObj.scale)
-      .from({x:0.1, y: 0.1}, 1000, Phaser.Easing.Linear.None, true)
-    this.levelup_text_rotate_tween = game.add.tween(textObj)
-      .to({angle: 10}, 100, Phaser.Easing.Linear.None, true, 0, -1, true);
-
-    this.levelup_text_grow_tween.onComplete.add(function(){
-      textObj.scale.setTo(1.5,1.5);
-      textObj.angle = -10;
-      textObj.visible = false;
-      this.levelup_text_rotate_tween.stop();
-    },this);
   },
   create: function() {
     //start preload game state
