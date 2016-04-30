@@ -57,8 +57,8 @@ Cordova_Api_Manager.prototype = {
         }
 
         //For devices that use cordova-media-plugin instead of Phaser, must manually start each desired audio over when game resumes (Phaser handles this much better on its own)
-        if(this.game.global.use_cordova_media_plugin() ){
-          this.game.global.playAudio('background_music',this.game,true);
+        if(game.global.use_cordova_media_plugin() ){
+          game.global.playAudio('background_music',game,true);
         }
       }
     }

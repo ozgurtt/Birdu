@@ -58,8 +58,8 @@ Cordova_Api_Manager.prototype = {
         }
 
         //For devices that use cordova-media-plugin instead of Phaser, must manually start each desired audio over when game resumes (Phaser handles this much better on its own)
-        if(this.game.global.use_cordova_media_plugin() ){
-          this.game.global.playAudio('background_music',this.game,true);
+        if(game.global.use_cordova_media_plugin() ){
+          game.global.playAudio('background_music',game,true);
         }
       }
     }
@@ -477,13 +477,14 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      //the 'key' argument must be the name of the audio file, without path or extension
       preloadAudio: function(key,game){
         if(!game.global.use_cordova_media_plugin()){//create audio with with Phaser engine
           game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) ); //use the key to create the filepath source URL
         }
         //no way to preload cordova-media-plugin audio (I think - setting and playing a zero volume did not work)
       },
-      //function to instantiate or get a playable audio file
+      //function to instantiate or get a playable audio file. This assumes preloading has already completed
       get_audio_file: function(audio_file_key_name,instantiateAudioFunction,game){
         var playable_audio;
         if(audio_file_key_name in game.global.playable_audio_hash){//search a hash to see if the audio already exists. if it does, return it
@@ -494,7 +495,8 @@ Boot.prototype = {
         }
         return playable_audio; //return the playable audio
       },
-      //function for preloading and playing short and looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      //function for playing short or looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      //the 'key' argument must be the name of the audio file, without path or extension
       playAudio: function(key,game,isLoop){
         if(!game.global.playable_audio_hash){game.global.playable_audio_hash = {};} //define a hash to hold the playable audio we will create and use
 
@@ -505,7 +507,9 @@ Boot.prototype = {
             var loop = null;
             if(isLoop){
               //can safely call get_audio_file with only key/name, as this looping function will only execute after the relevant audio has been created (played at least 1x)
-              loop = function () {  game.global.get_audio_file(audio_key,null,game).play(); };
+              loop = function () {
+                if(!game.paused){ game.global.get_audio_file(audio_key,null,game).play(); }
+              };
             }
             return new Media(src,loop);
           }
@@ -593,33 +597,35 @@ GameOver.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    this.congratsTextString = "Better luck next time.\n";
+    var gameScore = this.game.global.score + this.game.global.scoreBuffer;
+    var congratsTextString = "Score: "+ gameScore +" Level: "+ this.game.global.level + "\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
         var highscore_txt = "High Score: ";
 
-        var gameScore = this.game.global.score + this.game.global.scoreBuffer;
         if (gameScore > max){
           localStorage["maxScore"] = gameScore;
           max = gameScore;
           highscore_txt = "New "+highscore_txt;
         }
 
-        this.congratsTextString += highscore_txt+max;
+        congratsTextString += highscore_txt+max;
 
         //reset stored game state
-        localStorage["level"] = 0;
-        localStorage["currentGameScore"] = 0;
-        localStorage["currentGameScoreBuffer"] = 0;
+        this.resetStoredGameState();
     }
 
     //generic good job text
-    this.congratsText = this.game.add.text(this.game.world.centerX,  0, this.congratsTextString, this.game.global.text_font_style);
+    this.congratsText = this.game.add.text(this.game.world.centerX,  0, congratsTextString, this.game.global.text_font_style);
     this.congratsText.anchor.setTo(0.5, 0.5);
     this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
+    var instructionTxt = "Better luck next time";
+    if(congratsTextString.toLowerCase().indexOf("new") >= 0){ //User got a new High score!
+      instructionTxt = "Great job!"
+    }
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, instructionTxt, this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 
@@ -633,6 +639,11 @@ GameOver.prototype = {
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
     this.congratsText.width = Math.min(this.congratsText.width, window.innerWidth);
     this.instructionText.width = Math.min(this.instructionText.width, window.innerWidth);
+  },
+  resetStoredGameState: function(){
+    localStorage["level"] = 0;
+    localStorage["currentGameScore"] = 0;
+    localStorage["currentGameScoreBuffer"] = 0;
   },
   update: function () {
     if(this.game.input.activePointer.justPressed()) {

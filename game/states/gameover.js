@@ -25,33 +25,35 @@ GameOver.prototype = {
     this.game.add.tween(this.sprite).to({angle: 20}, 1000, Phaser.Easing.Linear.NONE, true, 0, 1000, true);
 
     //new high score text
-    this.congratsTextString = "Better luck next time.\n";
+    var gameScore = this.game.global.score + this.game.global.scoreBuffer;
+    var congratsTextString = "Score: "+ gameScore +" Level: "+ this.game.global.level + "\n";
     if( typeof(Storage) !== "undefined") { //newHighScore is passed to gameover from play state
         var max = localStorage["maxScore"] || 0; //default value of 0 is it does not exist
         var highscore_txt = "High Score: ";
 
-        var gameScore = this.game.global.score + this.game.global.scoreBuffer;
         if (gameScore > max){
           localStorage["maxScore"] = gameScore;
           max = gameScore;
           highscore_txt = "New "+highscore_txt;
         }
 
-        this.congratsTextString += highscore_txt+max;
+        congratsTextString += highscore_txt+max;
 
         //reset stored game state
-        localStorage["level"] = 0;
-        localStorage["currentGameScore"] = 0;
-        localStorage["currentGameScoreBuffer"] = 0;
+        this.resetStoredGameState();
     }
 
     //generic good job text
-    this.congratsText = this.game.add.text(this.game.world.centerX,  0, this.congratsTextString, this.game.global.text_font_style);
+    this.congratsText = this.game.add.text(this.game.world.centerX,  0, congratsTextString, this.game.global.text_font_style);
     this.congratsText.anchor.setTo(0.5, 0.5);
     this.congratsText.y = this.sprite.y + this.sprite.height/2 + this.congratsText.height/2; //must set after height is established
 
     //restart game text
-    this.instructionText = this.game.add.text(this.game.world.centerX, 0, 'Click to play again!', this.game.global.text_font_style);
+    var instructionTxt = "Better luck next time";
+    if(congratsTextString.toLowerCase().indexOf("new") >= 0){ //User got a new High score!
+      instructionTxt = "Great job!"
+    }
+    this.instructionText = this.game.add.text(this.game.world.centerX, 0, instructionTxt, this.game.global.text_font_style);
     this.instructionText.anchor.setTo(0.5, 0.5);
     this.instructionText.y = this.congratsText.y + this.congratsText.height/2 + this.instructionText.height/2; //must set after height is established
 
@@ -65,6 +67,11 @@ GameOver.prototype = {
     this.titleText.width = Math.min(this.titleText.width, window.innerWidth);
     this.congratsText.width = Math.min(this.congratsText.width, window.innerWidth);
     this.instructionText.width = Math.min(this.instructionText.width, window.innerWidth);
+  },
+  resetStoredGameState: function(){
+    localStorage["level"] = 0;
+    localStorage["currentGameScore"] = 0;
+    localStorage["currentGameScoreBuffer"] = 0;
   },
   update: function () {
     if(this.game.input.activePointer.justPressed()) {

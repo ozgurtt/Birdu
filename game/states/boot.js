@@ -56,13 +56,14 @@ Boot.prototype = {
       area: function(sprite){//must use Math.abs, as 'x' scales can be different, causing negative area values
         return Math.abs(sprite.width * sprite.height);
       },
+      //the 'key' argument must be the name of the audio file, without path or extension
       preloadAudio: function(key,game){
         if(!game.global.use_cordova_media_plugin()){//create audio with with Phaser engine
           game.load.audio(key, this.arrayOfCompatibleMusicFileNames(key) ); //use the key to create the filepath source URL
         }
         //no way to preload cordova-media-plugin audio (I think - setting and playing a zero volume did not work)
       },
-      //function to instantiate or get a playable audio file
+      //function to instantiate or get a playable audio file. This assumes preloading has already completed
       get_audio_file: function(audio_file_key_name,instantiateAudioFunction,game){
         var playable_audio;
         if(audio_file_key_name in game.global.playable_audio_hash){//search a hash to see if the audio already exists. if it does, return it
@@ -73,7 +74,8 @@ Boot.prototype = {
         }
         return playable_audio; //return the playable audio
       },
-      //function for preloading and playing short and looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      //function for playing short or looped audio through Cordova Media plugin or Phaser, whichever is supported on the device running the game
+      //the 'key' argument must be the name of the audio file, without path or extension
       playAudio: function(key,game,isLoop){
         if(!game.global.playable_audio_hash){game.global.playable_audio_hash = {};} //define a hash to hold the playable audio we will create and use
 
@@ -84,7 +86,9 @@ Boot.prototype = {
             var loop = null;
             if(isLoop){
               //can safely call get_audio_file with only key/name, as this looping function will only execute after the relevant audio has been created (played at least 1x)
-              loop = function () {  game.global.get_audio_file(audio_key,null,game).play(); };
+              loop = function () {
+                if(!game.paused){ game.global.get_audio_file(audio_key,null,game).play(); }
+              };
             }
             return new Media(src,loop);
           }
